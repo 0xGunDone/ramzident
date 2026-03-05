@@ -33,7 +33,7 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "Dentist",
     name: settings.clinicName,
-    image: `${settings.siteUrl}/og-image.jpg`,
+    image: `${settings.siteUrl}/opengraph-image`,
     url: settings.siteUrl,
     telephone: settings.phone,
     address: {

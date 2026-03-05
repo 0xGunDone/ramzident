@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
+import { ogSize } from "@/lib/og";
 
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
@@ -25,15 +26,35 @@ export async function generateMetadata({
   params,
 }: ServicePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const service = await prisma.service.findUnique({ where: { slug } });
+  const [service, settings] = await Promise.all([
+    prisma.service.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
 
   if (!service) {
     return {};
   }
 
+  const ogImage = `${settings.siteUrl}/services/${slug}/opengraph-image`;
+  const twitterImage = `${settings.siteUrl}/services/${slug}/twitter-image`;
+
   return {
     title: service.seoTitle || service.title,
     description: service.seoDescription || service.summary || service.description,
+    openGraph: {
+      images: [
+        {
+          url: ogImage,
+          width: ogSize.width,
+          height: ogSize.height,
+          alt: service.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [twitterImage],
+    },
   };
 }
 

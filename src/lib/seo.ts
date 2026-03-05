@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { getSiteSettings } from "@/lib/site";
+import { ogSize } from "@/lib/og";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -8,7 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = `${clinicName} — стоматология для взрослых и детей в Твери`;
   const description =
     "Рамзи Дент в Твери: терапия, детская стоматология, ортодонтия, хирургия, имплантация и эстетические процедуры. Запись по телефону.";
-  const ogImage = `${settings.siteUrl}/og-image.jpg`;
+  const ogImage = `${settings.siteUrl}/opengraph-image`;
+  const twitterImage = `${settings.siteUrl}/twitter-image`;
 
   return {
     metadataBase: new URL(settings.siteUrl || env.siteUrl),
@@ -31,8 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: ogImage,
-          width: 1200,
-          height: 630,
+          width: ogSize.width,
+          height: ogSize.height,
           alt: clinicName,
         },
       ],
@@ -41,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImage],
+      images: [twitterImage],
     },
     robots: {
       index: true,
