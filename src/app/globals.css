@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5efe5;
+  --background-strong: #fffaf2;
+  --foreground: #17343a;
+  --ink: #24454d;
+  --ink-strong: #102e35;
+  --muted: #5f767b;
+  --accent: #b99858;
+  --accent-soft: #ead9b1;
+  --line: rgba(16, 46, 53, 0.12);
+  --surface: rgba(255, 250, 242, 0.78);
+  --surface-strong: rgba(255, 252, 247, 0.94);
+  --shadow-soft: 0 18px 45px rgba(20, 43, 49, 0.08);
+  --shadow-deep: 0 30px 80px rgba(20, 43, 49, 0.14);
+  --font-body: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-heading: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(201, 176, 113, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(23, 60, 67, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8f3ea 0%, #f3ece0 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(185, 152, 88, 0.24);
+}
+
+.site-container {
+  margin: 0 auto;
+  width: min(100%, 1180px);
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.section-space {
+  padding-bottom: 4.5rem;
+  padding-top: 4.5rem;
+}
+
+.surface-card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.surface-card:hover {
+  box-shadow: var(--shadow-deep);
+}
+
+@media (min-width: 768px) {
+  .section-space {
+    padding-bottom: 5.5rem;
+    padding-top: 5.5rem;
+  }
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: fade-in-up 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.animate-fade {
+  animation: fade-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.animate-scale {
+  animation: scale-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+
+/* ---------- FAQ accordion transition ---------- */
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details[open] > p {
+  animation: fade-in-up 0.3s ease both;
 }

@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Section {
+  id      String  @id @default(cuid())
+  type    String  @unique // e.g. "hero", "about", "services", "doctors", "gallery", "contacts"
+  title   String?
+  order   Int     @default(0)
+  enabled Boolean @default(true)
+  content String? // JSON string containing section-specific content
+
+  services Service[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  summary        String?
+  description    String
+  body           String?
+  priceFrom      String?
+  duration       String?
+  icon           String?
+  badge          String?
+  seoTitle       String?
+  seoDescription String?
+  photoId        String?
+  photo          Media?   @relation("ServicePhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  order          Int      @default(0)
+  enabled        Boolean  @default(true)
+  sectionId      String?
+  section        Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Doctor {
+  id         String  @id @default(cuid())
+  name       String
+  slug       String  @unique
+  speciality String
+  experience String?
+  bio        String?
+  education  String?
+  schedule   String?
+  photoId    String? // Reference to Media id
+  photo      Media?  @relation("DoctorPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  order      Int     @default(0)
+  enabled    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id             String  @id @default(cuid())
+  filename       String
+  label          String?
+  path           String  @unique
+  width          Int?
+  height         Int?
+  sizeBytes      Int?
+  mimeType       String
+  altText        String?
+  seoTitle       String?
+  seoDescription String?
+  context        String? // For AI SEO context
+  usage          String? // e.g. "hero", "about", "gallery", "document"
+  usedBy         String? // e.g. "doctor:123" or "service:123"
+
+  doctorPhotos  Doctor[]       @relation("DoctorPhoto")
+  servicePhotos Service[]      @relation("ServicePhoto")
+  documents     SiteDocument[] @relation("DocumentFile")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteDocument {
+  id          String  @id @default(cuid())
+  title       String
+  slug        String  @unique
+  description String?
+  type        String
+  fileId      String?
+  file        Media?  @relation("DocumentFile", fields: [fileId], references: [id], onDelete: SetNull)
+  order       Int     @default(0)
+  enabled     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id      String  @id @default(cuid())
+  author  String
+  role    String?
+  quote   String
+  rating  Int     @default(5)
+  source  String?
+  order   Int     @default(0)
+  enabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FaqItem {
+  id       String  @id @default(cuid())
+  question String
+  answer   String
+  order    Int     @default(0)
+  enabled  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  key   String @id
+  value String // JSON string
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminUser {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String // Hashed password
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
