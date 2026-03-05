@@ -5,9 +5,9 @@ import { notFound } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
+import { createSocialMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
-import { ogSize } from "@/lib/og";
 
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
@@ -38,24 +38,14 @@ export async function generateMetadata({
   const ogImage = `${settings.siteUrl}/services/${slug}/opengraph-image`;
   const twitterImage = `${settings.siteUrl}/services/${slug}/twitter-image`;
 
-  return {
+  return createSocialMetadata({
     title: service.seoTitle || service.title,
     description: service.seoDescription || service.summary || service.description,
-    openGraph: {
-      images: [
-        {
-          url: ogImage,
-          width: ogSize.width,
-          height: ogSize.height,
-          alt: service.title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      images: [twitterImage],
-    },
-  };
+    imageAlt: service.title,
+    ogPath: ogImage,
+    twitterPath: twitterImage,
+    openGraphUrl: `${settings.siteUrl}/services/${slug}`,
+  });
 }
 
 export default async function ServicePage({ params }: ServicePageProps) {

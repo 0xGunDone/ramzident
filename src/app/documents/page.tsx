@@ -2,30 +2,19 @@ import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { createSocialMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
-import { ogSize } from "@/lib/og";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSocialMetadata({
   title: "Документы",
   description:
     "Лицензии, политика конфиденциальности и обязательная информация стоматологической клиники Рамзи Дент в Твери.",
-  openGraph: {
-    images: [
-      {
-        url: "/documents/opengraph-image",
-        width: ogSize.width,
-        height: ogSize.height,
-        alt: "Документы Рамзи Дент",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/documents/twitter-image"],
-  },
-};
+  imageAlt: "Документы Рамзи Дент",
+  ogPath: "/documents/opengraph-image",
+  twitterPath: "/documents/twitter-image",
+});
 
 export default async function DocumentsPage() {
   const documents = await prisma.siteDocument.findMany({

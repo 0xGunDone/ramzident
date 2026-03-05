@@ -1,4 +1,22 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+import { createSocialMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = {
+  ...createSocialMetadata({
+    title: "Страница не найдена",
+    description:
+      "Страница отсутствует или была перенесена. Перейдите на главную страницу клиники Рамзи Дент.",
+    imageAlt: "404 Рамзи Дент",
+    ogPath: "/404/opengraph-image",
+    twitterPath: "/404/twitter-image",
+  }),
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function NotFound() {
   return (

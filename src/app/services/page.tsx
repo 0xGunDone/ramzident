@@ -3,30 +3,19 @@ import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { createSocialMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
-import { ogSize } from "@/lib/og";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSocialMetadata({
   title: "Услуги",
   description:
     "Стоматологические услуги клиники Рамзи Дент в Твери: терапия, хирургия, имплантация, ортодонтия, детская стоматология, эстетические процедуры.",
-  openGraph: {
-    images: [
-      {
-        url: "/services/opengraph-image",
-        width: ogSize.width,
-        height: ogSize.height,
-        alt: "Услуги Рамзи Дент",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/services/twitter-image"],
-  },
-};
+  imageAlt: "Услуги Рамзи Дент",
+  ogPath: "/services/opengraph-image",
+  twitterPath: "/services/twitter-image",
+});
 
 export default async function ServicesPage() {
   const services = await prisma.service.findMany({

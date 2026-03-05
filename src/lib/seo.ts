@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { getSiteSettings } from "@/lib/site";
-import { ogSize } from "@/lib/og";
+import { createSocialMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -9,8 +9,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = `${clinicName} — стоматология для взрослых и детей в Твери`;
   const description =
     "Рамзи Дент в Твери: терапия, детская стоматология, ортодонтия, хирургия, имплантация и эстетические процедуры. Запись по телефону.";
-  const ogImage = `${settings.siteUrl}/opengraph-image`;
-  const twitterImage = `${settings.siteUrl}/twitter-image`;
+  const social = createSocialMetadata({
+    title,
+    description,
+    imageAlt: clinicName,
+    ogPath: `${settings.siteUrl}/opengraph-image`,
+    twitterPath: `${settings.siteUrl}/twitter-image`,
+    openGraphUrl: settings.siteUrl,
+  });
 
   return {
     metadataBase: new URL(settings.siteUrl || env.siteUrl),
@@ -23,27 +29,12 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/",
     },
+    ...social,
     openGraph: {
+      ...social.openGraph,
       type: "website",
       locale: "ru_RU",
-      url: settings.siteUrl,
       siteName: clinicName,
-      title,
-      description,
-      images: [
-        {
-          url: ogImage,
-          width: ogSize.width,
-          height: ogSize.height,
-          alt: clinicName,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [twitterImage],
     },
     robots: {
       index: true,
