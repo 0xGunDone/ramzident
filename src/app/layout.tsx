@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Toaster } from "sonner";
+import { STATIC_OG_PATHS } from "@/lib/og-paths";
 import { getSiteSettings } from "@/lib/site";
 import { getTestimonialStats } from "@/lib/data";
 import { absoluteUrl } from "@/lib/url";
@@ -46,7 +47,7 @@ export default async function RootLayout({
       "@context": "https://schema.org",
       "@type": "Dentist",
       name: settings.clinicName,
-      image: absoluteUrl("/opengraph-image"),
+      image: absoluteUrl(STATIC_OG_PATHS.home),
       url: absoluteUrl("/"),
       telephone: settings.phone,
       email: settings.email || undefined,

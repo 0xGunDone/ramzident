@@ -4,20 +4,22 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { createSocialMetadata } from "@/lib/metadata";
+import { getServicesIndexStaticOgPath } from "@/lib/og-static";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = createSocialMetadata({
-  title: "Услуги",
-  description:
-    "Стоматологические услуги клиники Рамзи Дент в Твери: терапия, хирургия, имплантация, ортодонтия, детская стоматология, эстетические процедуры.",
-  imageAlt: "Услуги Рамзи Дент",
-  ogPath: "/services/opengraph-image",
-  twitterPath: "/services/twitter-image",
-  canonicalPath: "/services",
-  openGraphUrl: "/services",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  return createSocialMetadata({
+    title: "Услуги",
+    description:
+      "Стоматологические услуги клиники Рамзи Дент в Твери: терапия, хирургия, имплантация, ортодонтия, детская стоматология, эстетические процедуры.",
+    imageAlt: "Услуги Рамзи Дент",
+    ogPath: await getServicesIndexStaticOgPath(),
+    canonicalPath: "/services",
+    openGraphUrl: "/services",
+  });
+}
 
 export default async function ServicesPage() {
   const services = await prisma.service.findMany({

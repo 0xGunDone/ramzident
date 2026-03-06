@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { createSocialMetadata } from "@/lib/metadata";
+import { getDocumentStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/url";
 
@@ -43,8 +44,7 @@ export async function generateMetadata({
       document.description ||
       `${document.type} стоматологической клиники Рамзи Дент в Твери.`,
     imageAlt: document.title,
-    ogPath: `/documents/${slug}/opengraph-image`,
-    twitterPath: `/documents/${slug}/twitter-image`,
+    ogPath: getDocumentStaticOgPathWithVersion(document),
     canonicalPath: `/documents/${slug}`,
     openGraphUrl: `/documents/${slug}`,
   });

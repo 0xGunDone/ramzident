@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
+import { generateAllStaticOgImages } from "@/lib/og-static";
 
 export const GET = withAuth(async () => {
   const settings = await prisma.siteSettings.findMany();
@@ -25,6 +26,10 @@ export const PUT = withAuth(async (request) => {
       })
     )
   );
+
+  await generateAllStaticOgImages().catch((error) => {
+    console.error("[OG] Failed to regenerate static OG assets after settings update:", error);
+  });
 
   return NextResponse.json({ success: true });
 });

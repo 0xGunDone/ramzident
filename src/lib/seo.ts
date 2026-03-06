@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
+import { getHomeStaticOgPath } from "@/lib/og-static";
 import { getSiteSettings } from "@/lib/site";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getSiteUrl } from "@/lib/url";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
+  const ogPath = await getHomeStaticOgPath();
   const clinicName = settings.clinicName;
   const title = `${clinicName} — стоматология для взрослых и детей в Твери`;
   const description =
@@ -14,8 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     imageAlt: clinicName,
-    ogPath: "/opengraph-image",
-    twitterPath: "/twitter-image",
+    ogPath,
     canonicalPath: "/",
     openGraphUrl: "/",
   });

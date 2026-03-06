@@ -44,12 +44,14 @@ sudo install -d -o ramzident -g ramzident /var/www/ramzident/prisma
 sudo touch /var/www/ramzident/prisma/dev.db
 sudo chown ramzident:ramzident /var/www/ramzident/prisma/dev.db
 sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/uploads
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/og
 ```
 
 This is required for two things:
 
 - SQLite must be writable in `prisma/dev.db`
 - media uploads must be writable in `public/uploads`
+- generated OG files must be writable in `public/og`
 
 If your real path is nested, for example `/var/www/product/ramzident`, make sure
 the service unit allows writes there too. The included deploy script handles this
@@ -188,10 +190,12 @@ sudo install -d -o ramzident -g ramzident /var/www/ramzident/prisma
 sudo touch /var/www/ramzident/prisma/dev.db
 sudo chown ramzident:ramzident /var/www/ramzident/prisma/dev.db
 sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/uploads
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/og
 sudo -u ramzident npm install
 sudo -u ramzident npx prisma generate
 sudo -u ramzident npx prisma migrate deploy
 sudo -u ramzident npm run build
+sudo -u ramzident npm run og:generate
 sudo systemctl restart ramzident
 ```
 
@@ -214,10 +218,10 @@ sudo APP_USER=ramzident SERVICE_NAME=ramzident ./scripts/deploy-production.sh
 The script will:
 
 - fix ownership of the repo
-- recreate writable `prisma/` and `public/uploads/`
+- recreate writable `prisma/`, `public/uploads/` and `public/og/`
 - recreate writable `prisma/dev.db`
 - patch `ReadWritePaths` in the systemd unit when `ProtectSystem=full` blocks writes
-- run `git pull`, `npm install`, `prisma generate`, `prisma migrate deploy`, `npm run build`
+- run `git pull`, `npm install`, `prisma generate`, `prisma migrate deploy`, `npm run build`, `npm run og:generate`
 - restart the service
 
 ## 12. File Permissions
@@ -234,6 +238,8 @@ For SQLite and uploads:
 sudo chown -R ramzident:ramzident /var/www/ramzident/prisma
 sudo mkdir -p /var/www/ramzident/public/uploads
 sudo chown -R ramzident:ramzident /var/www/ramzident/public/uploads
+sudo mkdir -p /var/www/ramzident/public/og
+sudo chown -R ramzident:ramzident /var/www/ramzident/public/og
 ```
 
 ## 13. Post-Deploy Checklist
@@ -241,6 +247,7 @@ sudo chown -R ramzident:ramzident /var/www/ramzident/public/uploads
 - open `https://example.com`
 - verify `/admin/login`
 - verify media uploads work
+- verify `https://example.com/og/site.jpg` returns `200` and `content-type: image/jpeg`
 - verify `https://example.com/opengraph-image` returns `200` and `content-type: image/png`
 - verify `/documents` and service pages open
 - verify `/robots.txt` and `/sitemap.xml`

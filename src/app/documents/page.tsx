@@ -4,6 +4,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { createSocialMetadata } from "@/lib/metadata";
+import { getDocumentsIndexStaticOgPath } from "@/lib/og-static";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Лицензии, политика конфиденциальности и обязательная информация стоматологической клиники Рамзи Дент в Твери.",
     imageAlt: "Документы Рамзи Дент",
-    ogPath: "/documents/opengraph-image",
-    twitterPath: "/documents/twitter-image",
+    ogPath: await getDocumentsIndexStaticOgPath(),
     canonicalPath: "/documents",
     openGraphUrl: "/documents",
     noindex: documentsCount === 0,

@@ -28,6 +28,7 @@ prisma/dev.db-journal
 
 # uploads
 /public/uploads/
+/public/og/
 
 # misc
 .DS_Store

@@ -14,6 +14,7 @@ DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 PRISMA_DIR="${APP_DIR}/prisma"
 DB_FILE="${PRISMA_DIR}/dev.db"
 UPLOADS_DIR="${APP_DIR}/public/uploads"
+OG_DIR="${APP_DIR}/public/og"
 
 log() {
   printf "==> %s\n" "$*"
@@ -53,10 +54,11 @@ ensure_writable_paths() {
   log "Ensuring writable Prisma and uploads paths"
   run_root install -d -m 755 -o "$APP_USER" -g "$APP_GROUP" "$PRISMA_DIR"
   run_root install -d -m 755 -o "$APP_USER" -g "$APP_GROUP" "$UPLOADS_DIR"
+  run_root install -d -m 755 -o "$APP_USER" -g "$APP_GROUP" "$OG_DIR"
   run_root touch "$DB_FILE"
   run_root chown "${APP_USER}:${APP_GROUP}" "$DB_FILE"
   run_root chmod 664 "$DB_FILE"
-  run_root chown -R "${APP_USER}:${APP_GROUP}" "$PRISMA_DIR" "$UPLOADS_DIR"
+  run_root chown -R "${APP_USER}:${APP_GROUP}" "$PRISMA_DIR" "$UPLOADS_DIR" "$OG_DIR"
 }
 
 sync_service_writable_path() {
@@ -120,6 +122,9 @@ prewarm_routes() {
 
   log "Prewarming homepage and OG routes"
   run_as_app "curl -fsS '${site_url}/' >/dev/null"
+  run_as_app "curl -fsS '${site_url}/og/site.jpg' >/dev/null"
+  run_as_app "curl -fsS '${site_url}/og/services.jpg' >/dev/null"
+  run_as_app "curl -fsS '${site_url}/og/documents.jpg' >/dev/null"
   run_as_app "curl -fsS '${site_url}/opengraph-image' >/dev/null"
   run_as_app "curl -fsS '${site_url}/twitter-image' >/dev/null"
 }
@@ -158,6 +163,9 @@ main() {
   run_as_app "cd '$APP_DIR' && npm run build"
 
   ensure_writable_paths
+
+  log "Generating static OG assets"
+  run_as_app "cd '$APP_DIR' && npm run og:generate"
 
   log "Restarting ${SERVICE_NAME}"
   run_root systemctl daemon-reload

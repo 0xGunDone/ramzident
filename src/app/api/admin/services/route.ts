@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { withAuth } from "@/lib/api";
+import { syncServiceStaticOgAssets } from "@/lib/og-static";
 
 export const GET = withAuth(async () => {
   const services = await prisma.service.findMany({
@@ -42,6 +43,10 @@ export const POST = withAuth(async (request) => {
       order: maxOrder ? maxOrder.order + 1 : 0,
       enabled: body.enabled ?? true,
     },
+  });
+
+  await syncServiceStaticOgAssets(service).catch((error) => {
+    console.error("[OG] Failed to generate service OG asset after create:", error);
   });
 
   return NextResponse.json(service);

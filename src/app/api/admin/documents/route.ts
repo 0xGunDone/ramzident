@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { withAuth } from "@/lib/api";
+import { syncDocumentStaticOgAssets } from "@/lib/og-static";
 
 export const GET = withAuth(async () => {
   const documents = await prisma.siteDocument.findMany({
@@ -35,6 +36,10 @@ export const POST = withAuth(async (request) => {
       order: maxOrder ? maxOrder.order + 1 : 0,
       enabled: body.enabled ?? false,
     },
+  });
+
+  await syncDocumentStaticOgAssets(document).catch((error) => {
+    console.error("[OG] Failed to generate document OG asset after create:", error);
   });
 
   return NextResponse.json(document);

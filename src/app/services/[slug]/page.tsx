@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
 import { isUploadedMediaPath } from "@/lib/images";
 import { createSocialMetadata } from "@/lib/metadata";
+import { getServiceStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { absoluteUrl } from "@/lib/url";
@@ -38,8 +39,7 @@ export async function generateMetadata({
     title: service.seoTitle || service.title,
     description: service.seoDescription || service.summary || service.description,
     imageAlt: service.title,
-    ogPath: `/services/${slug}/opengraph-image`,
-    twitterPath: `/services/${slug}/twitter-image`,
+    ogPath: getServiceStaticOgPathWithVersion(service),
     canonicalPath: `/services/${slug}`,
     openGraphUrl: `/services/${slug}`,
   });
