@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
@@ -51,6 +52,7 @@ export default async function GallerySection() {
                 alt={image.altText || image.label || `Фото клиники ${index + 1}`}
                 fill
                 className="object-cover"
+                unoptimized={isUploadedMediaPath(image.path)}
                 sizes={
                   index === 0
                     ? "(max-width: 768px) 100vw, 66vw"

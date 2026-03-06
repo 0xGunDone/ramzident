@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
@@ -66,6 +67,7 @@ export default async function ServicesSection() {
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized={isUploadedMediaPath(service.photo.path)}
                   />
                 ) : (
                   <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,rgba(201,176,113,0.22),transparent_38%),linear-gradient(135deg,rgba(23,60,67,0.9),rgba(41,86,95,0.92))]" />

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 
 interface AboutContent {
@@ -36,6 +37,7 @@ export default async function AboutSection() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 42vw"
+                unoptimized={isUploadedMediaPath(content.imagePath)}
               />
             </div>
           </div>

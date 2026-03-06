@@ -1,5 +1,6 @@
 import Image from "next/image";
 import PhoneLink from "@/components/ui/PhoneLink";
+import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, getSiteSettings, parseSectionContent } from "@/lib/site";
 
 interface HeroContent {
@@ -127,6 +128,7 @@ export default async function HeroSection() {
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 48vw"
                 priority
+                unoptimized={isUploadedMediaPath(content.imagePath)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[rgba(16,46,53,0.4)] via-transparent to-transparent" />
             </div>

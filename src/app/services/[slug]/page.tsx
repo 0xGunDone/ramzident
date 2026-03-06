@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
+import { isUploadedMediaPath } from "@/lib/images";
 import { createSocialMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
@@ -196,6 +197,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                       fill
                       className="object-cover"
                       sizes="(max-width: 1024px) 100vw, 42vw"
+                      unoptimized={isUploadedMediaPath(service.photo.path)}
                     />
                   ) : (
                     <div className="h-full w-full bg-[linear-gradient(135deg,rgba(23,60,67,0.9),rgba(41,86,95,0.94))]" />

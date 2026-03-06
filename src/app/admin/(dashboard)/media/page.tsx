@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import type { MediaItem } from "@/types";
+import { isUploadedMediaPath } from "@/lib/images";
 
 const usageOptions = [
   "",
@@ -263,6 +264,7 @@ export default function MediaManager() {
                   fill
                   className="object-contain"
                   sizes="(max-width: 1280px) 100vw, 33vw"
+                  unoptimized={isUploadedMediaPath(item.path)}
                 />
               ) : (
                 <div className="px-4 text-center text-sm font-medium text-slate-500">

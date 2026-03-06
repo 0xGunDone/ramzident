@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
@@ -49,6 +50,7 @@ export default async function DoctorsSection() {
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized={isUploadedMediaPath(doctor.photo.path)}
                   />
                 ) : (
                   <div className="h-full w-full bg-[linear-gradient(180deg,rgba(23,60,67,0.12),rgba(23,60,67,0.24))]" />
