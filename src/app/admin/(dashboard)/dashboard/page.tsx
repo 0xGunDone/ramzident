@@ -50,16 +50,16 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-slate-950">Что уже подготовлено</h2>
-        <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-600">
-          <li>Отдельные страницы услуг для SEO и прямого звонка.</li>
-          <li>Документный раздел под политику, оферту и лицензии.</li>
-          <li>Карта Яндекса с кастомным пином на основе логотипа клиники.</li>
-          <li>Явное назначение медиа по usage вместо случайной галереи.</li>
-          <li>Обновлённая визуальная система для публичной части.</li>
-        </ul>
-      </div>
+      {/* <div className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm"> */}
+        {/* <h2 className="text-xl font-semibold text-slate-950">Что уже подготовлено</h2> */}
+        {/* <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-600"> */}
+          {/* <li>Отдельные страницы услуг для SEO и прямого звонка.</li> */}
+          {/* <li>Документный раздел под политику, оферту и лицензии.</li> */}
+          {/* <li>Карта Яндекса с кастомным пином на основе логотипа клиники.</li> */}
+          {/* <li>Явное назначение медиа по usage вместо случайной галереи.</li> */}
+          {/* <li>Обновлённая визуальная система для публичной части.</li> */}
+        {/* </ul> */}
+      {/* </div> */}
     </div>
   );
 }

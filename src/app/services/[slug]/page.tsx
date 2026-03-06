@@ -174,8 +174,8 @@ export default async function ServicePage({ params }: ServicePageProps) {
                   Запись на услугу
                 </p>
                 <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                  Для записи на консультацию или лечение позвоните в клинику. Онлайн
-                  формы на сайте не используются.
+                  Позвоните в клинику, и мы подберём удобное время для консультации
+                  или лечения.
                 </p>
                 <PhoneLink
                   phone={settings.phone}

@@ -40,8 +40,8 @@ export default async function DocumentsPage() {
         <div className="site-container space-y-10">
           <SectionHeading
             eyebrow="Документы"
-            title="Лицензии, политика и обязательная информация"
-            description="Раздел подготовлен как отдельная публичная зона для всех юридически значимых документов клиники."
+            title="Документы клиники"
+            description="Лицензии, политика конфиденциальности и другая официальная информация."
             as="h1"
           />
 
@@ -72,7 +72,7 @@ export default async function DocumentsPage() {
                       href={`/documents/${document.slug}`}
                       className="inline-flex items-center justify-center rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold text-[var(--ink)]"
                     >
-                      Страница документа
+                      Подробнее
                     </Link>
                     {document.file?.path ? (
                       <a
@@ -90,8 +90,7 @@ export default async function DocumentsPage() {
             </div>
           ) : (
             <div className="surface-card rounded-[2rem] px-6 py-8 text-base leading-8 text-[var(--muted)]">
-              Раздел уже создан. После загрузки лицензий, политики и оферты в
-              админке документы автоматически появятся на этой странице.
+              Документы скоро появятся в этом разделе.
             </div>
           )}
         </div>

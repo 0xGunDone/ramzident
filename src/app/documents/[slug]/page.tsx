@@ -124,14 +124,13 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
                 </h1>
                 <p className="max-w-3xl text-lg leading-8 text-[var(--muted)]">
                   {document.description ||
-                    "Официальный документ клиники. Откройте страницу файла для просмотра или скачивания."}
+                    "Здесь можно открыть или скачать оригинал документа."}
                 </p>
               </div>
 
               <div className="surface-card rounded-[2rem] px-6 py-6">
                 <p className="text-sm leading-8 text-[var(--muted)]">
-                  На этой странице собрана публичная информация по документу. Для
-                  просмотра оригинала откройте прикреплённый файл.
+                  Откройте файл в браузере или скачайте его на устройство.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a

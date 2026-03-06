@@ -22,7 +22,7 @@ export default async function DocumentsSection() {
     }),
   ]);
 
-  if (!section?.enabled) return null;
+  if (!section?.enabled || documents.length === 0) return null;
 
   const content = parseSectionContent(section.content, fallbackContent);
 
@@ -32,7 +32,7 @@ export default async function DocumentsSection() {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <SectionHeading
             eyebrow="Документы"
-            title={section.title || "Юридически важный раздел без заглушек"}
+            title={section.title || "Официальные документы клиники"}
             description={content.description}
           />
           <Link
@@ -43,47 +43,39 @@ export default async function DocumentsSection() {
           </Link>
         </div>
 
-        {documents.length > 0 ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            {documents.map((document) => (
-              <article
-                key={document.id}
-                className="surface-card rounded-[1.8rem] px-6 py-6"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
-                  {document.type}
+        <div className="grid gap-5 lg:grid-cols-2">
+          {documents.map((document) => (
+            <article
+              key={document.id}
+              className="surface-card rounded-[1.8rem] px-6 py-6"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+                {document.type}
+              </p>
+              <h3 className="mt-3 text-xl font-semibold text-[var(--ink-strong)]">
+                <Link
+                  href={`/documents/${document.slug}`}
+                  className="transition-colors hover:text-[var(--accent)]"
+                >
+                  {document.title}
+                </Link>
+              </h3>
+              {document.description ? (
+                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+                  {document.description}
                 </p>
-                <h3 className="mt-3 text-xl font-semibold text-[var(--ink-strong)]">
-                  <Link
-                    href={`/documents/${document.slug}`}
-                    className="transition-colors hover:text-[var(--accent)]"
-                  >
-                    {document.title}
-                  </Link>
-                </h3>
-                {document.description ? (
-                  <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                    {document.description}
-                  </p>
-                ) : null}
-                <div className="mt-4">
-                  <Link
-                    href={`/documents/${document.slug}`}
-                    className="text-sm font-semibold text-[var(--ink)] underline-offset-4 hover:underline"
-                  >
-                    Подробнее о документе
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="surface-card rounded-[2rem] px-6 py-8 text-sm leading-7 text-[var(--muted)]">
-            Раздел уже подготовлен под лицензии, политику и оферту. Как только
-            файлы будут загружены в админке, они автоматически появятся здесь и
-            на отдельной странице документов.
-          </div>
-        )}
+              ) : null}
+              <div className="mt-4">
+                <Link
+                  href={`/documents/${document.slug}`}
+                  className="text-sm font-semibold text-[var(--ink)] underline-offset-4 hover:underline"
+                >
+                  Подробнее
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
