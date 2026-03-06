@@ -97,13 +97,10 @@ export default function YandexClinicMap({
     InstanceType<NonNullable<typeof window.ymaps>["Placemark"]> | null
   >(null);
   const [mapReady, setMapReady] = useState(false);
-  const [scriptFailed, setScriptFailed] = useState(false);
+  const [failedApiKey, setFailedApiKey] = useState<string | null>(null);
   const hasApiKey = apiKey.trim().length > 0;
+  const scriptFailed = hasApiKey && failedApiKey === apiKey;
   const iframeSrc = `https://yandex.ru/map-widget/v1/?ll=${center[1]}%2C${center[0]}&z=${zoom}&pt=${pin[1]}%2C${pin[0]}%2Cpm2rdm`;
-
-  useEffect(() => {
-    setScriptFailed(false);
-  }, [apiKey]);
 
   useEffect(() => {
     if (!hasApiKey || !containerRef.current) {
@@ -153,6 +150,9 @@ export default function YandexClinicMap({
             map.geoObjects.add(placemark);
             mapRef.current = map;
             placemarkRef.current = placemark;
+            if (failedApiKey === apiKey) {
+              setFailedApiKey(null);
+            }
             setMapReady(true);
             return;
           }
@@ -164,18 +164,21 @@ export default function YandexClinicMap({
             placemarkRef.current.properties.set("balloonContentBody", address);
             placemarkRef.current.properties.set("iconCaption", title);
           }
+          if (failedApiKey === apiKey) {
+            setFailedApiKey(null);
+          }
           setMapReady(true);
         });
       })
       .catch(() => {
         setMapReady(false);
-        setScriptFailed(true);
+        setFailedApiKey(apiKey);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [address, apiKey, center, hasApiKey, pin, title, zoom]);
+  }, [address, apiKey, center, failedApiKey, hasApiKey, pin, title, zoom]);
 
   useEffect(() => {
     return () => {
