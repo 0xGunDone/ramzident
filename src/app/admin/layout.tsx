@@ -22,7 +22,7 @@ export default function AdminLayout({
   return (
     <Providers>
       <div className="flex min-h-screen bg-gray-100">
-        <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col">{children}</div>
       </div>
     </Providers>
   );

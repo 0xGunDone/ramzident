@@ -259,6 +259,10 @@ export default function DoctorsManager() {
                   </option>
                 ))}
               </select>
+              <p className="text-xs leading-6 text-slate-500">
+                Если нужно заменить сам файл без потери SEO и привязки к врачу,
+                откройте запись в разделе «Медиа» и нажмите «Заменить файл».
+              </p>
             </label>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Краткая биография</span>

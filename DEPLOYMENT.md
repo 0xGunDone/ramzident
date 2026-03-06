@@ -39,7 +39,17 @@ sudo chown -R ramzident:ramzident /var/www
 cd /var/www
 sudo -u ramzident git clone <YOUR_GITHUB_REPO_URL> ramzident
 cd /var/www/ramzident
+sudo chown -R ramzident:ramzident /var/www/ramzident
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/prisma
+sudo touch /var/www/ramzident/prisma/dev.db
+sudo chown ramzident:ramzident /var/www/ramzident/prisma/dev.db
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/uploads
 ```
+
+This is required for two things:
+
+- SQLite must be writable in `prisma/dev.db`
+- media uploads must be writable in `public/uploads`
 
 ## 4. Configure Environment
 
@@ -55,6 +65,7 @@ Minimum required values:
 ```env
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_URL="https://example.com"
+SITE_URL="https://example.com"
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="replace-with-a-strong-password"
@@ -64,6 +75,7 @@ Notes:
 
 - most site settings are managed from `/admin/settings`
 - `DATABASE_URL="file:./dev.db"` stores SQLite inside `prisma/dev.db`
+- `SITE_URL` must match the public HTTPS domain exactly, otherwise OG/canonical URLs may point to the wrong host
 - if you use SQLite in production, make sure the app user can write to `prisma/`
 
 ## 5. Install Dependencies
@@ -167,6 +179,11 @@ For the next release:
 ```bash
 cd /var/www/ramzident
 sudo -u ramzident git pull
+sudo chown -R ramzident:ramzident /var/www/ramzident
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/prisma
+sudo touch /var/www/ramzident/prisma/dev.db
+sudo chown ramzident:ramzident /var/www/ramzident/prisma/dev.db
+sudo install -d -o ramzident -g ramzident /var/www/ramzident/public/uploads
 sudo -u ramzident npm install
 sudo -u ramzident npx prisma generate
 sudo -u ramzident npx prisma migrate deploy
@@ -197,6 +214,7 @@ sudo chown -R ramzident:ramzident /var/www/ramzident/public/uploads
 - open `https://example.com`
 - verify `/admin/login`
 - verify media uploads work
+- verify `https://example.com/opengraph-image` returns `200` and `content-type: image/png`
 - verify `/documents` and service pages open
 - verify `/robots.txt` and `/sitemap.xml`
 - verify `sudo systemctl status ramzident`

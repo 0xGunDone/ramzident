@@ -15,11 +15,23 @@ const usageOptions = [
   "document",
 ];
 
+async function getErrorMessage(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    if (typeof data?.error === "string" && data.error.trim().length > 0) {
+      return data.error;
+    }
+  } catch {}
+
+  return fallback;
+}
+
 export default function MediaManager() {
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [replacingId, setReplacingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filteredMediaList = mediaList.filter(
@@ -42,10 +54,15 @@ export default function MediaManager() {
     const load = async () => {
       try {
         const response = await fetch("/api/admin/media");
+        if (!response.ok) {
+          throw new Error(await getErrorMessage(response, "Не удалось загрузить медиатеку"));
+        }
+
         const data = await response.json();
         setMediaList(data);
       } catch (error) {
         console.error(error);
+        toast.error(error instanceof Error ? error.message : "Не удалось загрузить медиатеку");
       } finally {
         setLoading(false);
       }
@@ -56,6 +73,10 @@ export default function MediaManager() {
 
   const refreshMedia = async () => {
     const response = await fetch("/api/admin/media");
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response, "Не удалось обновить медиатеку"));
+    }
+
     const data = await response.json();
     setMediaList(data);
   };
@@ -76,14 +97,14 @@ export default function MediaManager() {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error(await getErrorMessage(response, "Не удалось загрузить файл"));
       }
 
       await refreshMedia();
       toast.success("Файл загружен");
     } catch (error) {
       console.error(error);
-      toast.error("Не удалось загрузить файл");
+      toast.error(error instanceof Error ? error.message : "Не удалось загрузить файл");
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -100,6 +121,38 @@ export default function MediaManager() {
       context: item.context || "",
       usage: item.usage || "",
     });
+  };
+
+  const handleReplace = async (
+    id: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    setReplacingId(id);
+
+    try {
+      const response = await fetch(`/api/admin/media/${id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response, "Не удалось заменить файл"));
+      }
+
+      await refreshMedia();
+      toast.success("Файл заменён. SEO и связи сохранены.");
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Не удалось заменить файл");
+    } finally {
+      setReplacingId(null);
+      event.target.value = "";
+    }
   };
 
   const saveMeta = async (id: string) => {
@@ -243,6 +296,20 @@ export default function MediaManager() {
 
               {editingId === item.id ? (
                 <div className="space-y-3 border-t border-slate-100 pt-4">
+                  <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700">
+                    {replacingId === item.id ? "Замена..." : "Заменить файл"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*,.pdf,.doc,.docx"
+                      onChange={(event) => handleReplace(item.id, event)}
+                      disabled={replacingId === item.id}
+                    />
+                  </label>
+                  <p className="text-xs leading-6 text-slate-500">
+                    Подменяет сам файл, но сохраняет текущие SEO-поля, alt и связи с
+                    врачами, услугами и документами.
+                  </p>
                   <input
                     value={editForm.label}
                     onChange={(event) =>
@@ -337,13 +404,25 @@ export default function MediaManager() {
                   <p>Usage: {item.usage || "не задан"}</p>
                   {item.altText ? <p>Alt: {item.altText}</p> : null}
                   {item.seoTitle ? <p>SEO title: {item.seoTitle}</p> : null}
-                  <button
-                    type="button"
-                    onClick={() => startEditing(item)}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700"
-                  >
-                    Редактировать
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700">
+                      {replacingId === item.id ? "Замена..." : "Заменить файл"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx"
+                        onChange={(event) => handleReplace(item.id, event)}
+                        disabled={replacingId === item.id}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => startEditing(item)}
+                      className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700"
+                    >
+                      Редактировать
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
