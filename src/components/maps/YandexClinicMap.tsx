@@ -97,7 +97,13 @@ export default function YandexClinicMap({
     InstanceType<NonNullable<typeof window.ymaps>["Placemark"]> | null
   >(null);
   const [mapReady, setMapReady] = useState(false);
+  const [scriptFailed, setScriptFailed] = useState(false);
   const hasApiKey = apiKey.trim().length > 0;
+  const iframeSrc = `https://yandex.ru/map-widget/v1/?ll=${center[1]}%2C${center[0]}&z=${zoom}&pt=${pin[1]}%2C${pin[0]}%2Cpm2rdm`;
+
+  useEffect(() => {
+    setScriptFailed(false);
+  }, [apiKey]);
 
   useEffect(() => {
     if (!hasApiKey || !containerRef.current) {
@@ -140,7 +146,7 @@ export default function YandexClinicMap({
                 iconCaption: title,
               },
               {
-                preset: "islands#redMedicalIcon",
+                preset: "islands#redDotIcon",
               }
             );
 
@@ -163,6 +169,7 @@ export default function YandexClinicMap({
       })
       .catch(() => {
         setMapReady(false);
+        setScriptFailed(true);
       });
 
     return () => {
@@ -180,8 +187,7 @@ export default function YandexClinicMap({
     };
   }, []);
 
-  if (!hasApiKey) {
-    const iframeSrc = `https://yandex.ru/map-widget/v1/?ll=${center[1]}%2C${center[0]}&z=${zoom}`;
+  if (!hasApiKey || scriptFailed) {
     return (
       <div className="relative min-h-[360px] w-full overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--surface-strong)] shadow-[var(--shadow-soft)] lg:min-h-[520px]">
         <iframe
