@@ -8,6 +8,13 @@ const readonlyDatabasePattern = /attempt to write a readonly database|readonly/i
 const missingColumnPattern = /no such column|has no column named/i;
 const unsupportedImagePattern = /unsupported image format|unsupported image/i;
 const missingDatabasePattern = /unable to open database file/i;
+const targetSizeNotReachedPattern = /IMAGE_TARGET_SIZE_NOT_REACHED/;
+const TARGET_IMAGE_SIZE_BYTES = 200 * 1024;
+const INITIAL_IMAGE_MAX_WIDTH = 1800;
+const MIN_IMAGE_MAX_WIDTH = 320;
+const INITIAL_WEBP_QUALITY = 84;
+const MIN_WEBP_QUALITY = 20;
+const WEBP_EFFORT = 6;
 
 export interface StoredMediaFile {
   originalName: string;
@@ -17,6 +24,12 @@ export interface StoredMediaFile {
   sizeBytes: number;
   mimeType: string;
   storedFilePath: string;
+}
+
+interface OptimizedImageResult {
+  data: Buffer;
+  width: number | null;
+  height: number | null;
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
@@ -52,6 +65,10 @@ export function getUploadErrorMessage(error: unknown) {
     return "Формат изображения не поддерживается сервером. Сохраните файл как JPG, PNG или WebP и повторите загрузку.";
   }
 
+  if (targetSizeNotReachedPattern.test(message)) {
+    return "Не удалось сжать изображение до 200 КБ. Загрузите изображение меньшего разрешения.";
+  }
+
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
@@ -60,6 +77,75 @@ export function getUploadErrorMessage(error: unknown) {
   }
 
   return message;
+}
+
+async function encodeWebp(
+  source: Buffer,
+  maxWidth: number,
+  quality: number
+): Promise<OptimizedImageResult> {
+  const { data, info } = await sharp(source)
+    .rotate()
+    .resize({ width: maxWidth, withoutEnlargement: true })
+    .webp({ quality, effort: WEBP_EFFORT })
+    .toBuffer({ resolveWithObject: true });
+
+  return {
+    data,
+    width: info.width ?? null,
+    height: info.height ?? null,
+  };
+}
+
+async function optimizeImageToTarget(source: Buffer): Promise<OptimizedImageResult> {
+  let maxWidth = INITIAL_IMAGE_MAX_WIDTH;
+  let quality = INITIAL_WEBP_QUALITY;
+  let best: OptimizedImageResult | null = null;
+
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const candidate = await encodeWebp(source, maxWidth, quality);
+
+    if (!best || candidate.data.byteLength < best.data.byteLength) {
+      best = candidate;
+    }
+
+    if (candidate.data.byteLength <= TARGET_IMAGE_SIZE_BYTES) {
+      return candidate;
+    }
+
+    if (quality > 40) {
+      quality = Math.max(40, quality - 8);
+      continue;
+    }
+
+    if (maxWidth > 1000) {
+      maxWidth = Math.max(1000, Math.floor(maxWidth * 0.82));
+      continue;
+    }
+
+    if (quality > MIN_WEBP_QUALITY) {
+      quality = Math.max(MIN_WEBP_QUALITY, quality - 4);
+      continue;
+    }
+
+    if (maxWidth > MIN_IMAGE_MAX_WIDTH) {
+      maxWidth = Math.max(MIN_IMAGE_MAX_WIDTH, Math.floor(maxWidth * 0.85));
+      continue;
+    }
+
+    break;
+  }
+
+  if (best && best.data.byteLength <= TARGET_IMAGE_SIZE_BYTES) {
+    return best;
+  }
+
+  const fallback = await encodeWebp(source, MIN_IMAGE_MAX_WIDTH, MIN_WEBP_QUALITY);
+  if (fallback.data.byteLength <= TARGET_IMAGE_SIZE_BYTES) {
+    return fallback;
+  }
+
+  throw new Error("IMAGE_TARGET_SIZE_NOT_REACHED");
 }
 
 export async function storeUploadedFile(file: File): Promise<StoredMediaFile> {
@@ -78,20 +164,18 @@ export async function storeUploadedFile(file: File): Promise<StoredMediaFile> {
   let height: number | null = null;
   let mimeType = file.type || "application/octet-stream";
   let storedFilePath = path.join(uploadDir, filename);
+  let sizeBytes = buffer.byteLength;
 
   if (isImage && extension !== ".svg") {
     filename = `${uniqueSuffix}.webp`;
     publicPath = `/uploads/${filename}`;
     storedFilePath = path.join(uploadDir, filename);
 
-    const imageInfo = await sharp(buffer)
-      .rotate()
-      .resize({ width: 1800, withoutEnlargement: true })
-      .webp({ quality: 84 })
-      .toFile(storedFilePath);
-
-    width = imageInfo.width ?? null;
-    height = imageInfo.height ?? null;
+    const optimized = await optimizeImageToTarget(buffer);
+    await writeFile(storedFilePath, optimized.data);
+    width = optimized.width;
+    height = optimized.height;
+    sizeBytes = optimized.data.byteLength;
     mimeType = "image/webp";
   } else {
     await writeFile(storedFilePath, buffer);
@@ -106,7 +190,7 @@ export async function storeUploadedFile(file: File): Promise<StoredMediaFile> {
     publicPath,
     width,
     height,
-    sizeBytes: buffer.byteLength,
+    sizeBytes,
     mimeType,
     storedFilePath,
   };

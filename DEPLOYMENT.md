@@ -155,6 +155,10 @@ Replace:
 - `www.example.com`
 - SSL certificate paths if needed
 - keep `client_max_body_size 50m;` for admin media uploads and file replacement
+- set correct absolute `alias` paths for:
+  - `location /uploads/` -> `<APP_DIR>/public/uploads/`
+  - `location /og/` -> `<APP_DIR>/public/og/`
+  Example for nested deploy path: `/var/www/product/ramzident/public/uploads/`
 
 Enable site:
 
@@ -248,6 +252,7 @@ sudo chown -R ramzident:ramzident /var/www/ramzident/public/og
 - open `https://example.com`
 - verify `/admin/login`
 - verify media uploads work
+- verify a newly uploaded `/uploads/...` URL opens immediately without app restart
 - if upload returns `413`, verify nginx has `client_max_body_size 50m;` and app is deployed with `experimental.proxyClientMaxBodySize` in `next.config.ts`
 - verify `https://example.com/og/site.jpg` returns `200` and `content-type: image/jpeg`
 - verify `https://example.com/opengraph-image` returns `200` and `content-type: image/png`
