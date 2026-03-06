@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import { STATIC_OG_PATHS } from "@/lib/og-paths";
 import { getSiteSettings } from "@/lib/site";
@@ -12,6 +13,10 @@ function parseHours(range: string): { opens: string; closes: string } {
   return { opens: opens || "10:00", closes: closes || "19:00" };
 }
 
+function normalizeMetrikaId(value: string) {
+  return value.replace(/[^\d]/g, "");
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +26,8 @@ export default async function RootLayout({
     getSiteSettings(),
     getTestimonialStats(),
   ]);
+  const metrikaId = normalizeMetrikaId(settings.yandexMetrikaId || "");
+  const gaId = (settings.googleAnalyticsId || "").trim();
 
   const weekdayHours = parseHours(settings.workHoursWeekdays);
   const weekendHours = parseHours(settings.workHoursWeekend);
@@ -99,6 +106,54 @@ export default async function RootLayout({
       <body className="antialiased">
         {children}
         <Toaster position="top-right" richColors closeButton />
+        {gaId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = window.gtag || gtag;
+                gtag('js', new Date());
+                gtag('config', '${gaId}', { anonymize_ip: true });
+              `}
+            </Script>
+          </>
+        ) : null}
+        {metrikaId ? (
+          <>
+            <Script id="yandex-metrika" strategy="afterInteractive">
+              {`
+                (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                m[i].l=1*new Date();
+                for (var j = 0; j < document.scripts.length; j++) {
+                  if (document.scripts[j].src === r) { return; }
+                }
+                k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a);
+                })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+                ym(${metrikaId}, "init", {
+                  clickmap:true,
+                  trackLinks:true,
+                  accurateTrackBounce:true,
+                  webvisor:true
+                });
+              `}
+            </Script>
+            <noscript>
+              <div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://mc.yandex.ru/watch/${metrikaId}`}
+                  style={{ position: "absolute", left: "-9999px" }}
+                  alt=""
+                />
+              </div>
+            </noscript>
+          </>
+        ) : null}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

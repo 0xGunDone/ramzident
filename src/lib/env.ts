@@ -24,6 +24,9 @@ export const env = {
   mapPinLat: parseNumber(process.env.YANDEX_MAP_PIN_LAT, 56.855958248139),
   mapPinLng: parseNumber(process.env.YANDEX_MAP_PIN_LNG, 35.894215563158),
   mapZoom: parseNumber(process.env.YANDEX_MAP_ZOOM, 17),
+  yandexMapsApiKey: process.env.YANDEX_MAPS_API_KEY || "",
+  yandexMetrikaId: process.env.YANDEX_METRIKA_ID || "",
+  googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID || "",
   openRouterApiKey: process.env.OPENROUTER_API_KEY || "",
   openRouterModel:
     process.env.OPENROUTER_MODEL || "qwen/qwen3-vl-30b-a3b-thinking",

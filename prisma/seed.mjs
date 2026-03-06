@@ -137,6 +137,9 @@ const siteSettings = {
   mapPinLat: process.env.YANDEX_MAP_PIN_LAT || "56.855958248139",
   mapPinLng: process.env.YANDEX_MAP_PIN_LNG || "35.894215563158",
   mapZoom: process.env.YANDEX_MAP_ZOOM || "17",
+  yandexMapsApiKey: process.env.YANDEX_MAPS_API_KEY || "",
+  yandexMetrikaId: process.env.YANDEX_METRIKA_ID || "",
+  googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID || "",
   siteUrl: process.env.SITE_URL || "https://ramzident.ru",
   openRouterApiKey: process.env.OPENROUTER_API_KEY || "",
   openRouterModel:

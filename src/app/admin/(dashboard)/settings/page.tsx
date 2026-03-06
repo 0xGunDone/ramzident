@@ -19,6 +19,9 @@ const defaults = {
   mapPinLat: "56.855958248139",
   mapPinLng: "35.894215563158",
   mapZoom: "17",
+  yandexMapsApiKey: "",
+  yandexMetrikaId: "",
+  googleAnalyticsId: "",
   copyrightText: "",
   creatorName: "",
   creatorUrl: "",
@@ -191,8 +194,8 @@ export default function SettingsManager() {
         <section className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-950">Карта Яндекса</h2>
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            Вместо iframe здесь используются координаты центра карты и координаты
-            кастомного пина с логотипом клиники.
+            Интерактивная карта работает через JS API Яндекс Карт. Укажите API
+            ключ и координаты центра/пина.
           </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -232,6 +235,50 @@ export default function SettingsManager() {
               <input
                 value={settings.mapZoom}
                 onChange={(event) => updateField("mapZoom", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3"
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+              <span>API ключ Яндекс Карт</span>
+              <input
+                type="password"
+                value={settings.yandexMapsApiKey}
+                onChange={(event) =>
+                  updateField("yandexMapsApiKey", event.target.value)
+                }
+                placeholder="например: 18c6f1f9-...."
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-mono text-xs"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-950">Аналитика</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">
+            Счётчики подключаются на всех страницах сайта. Оставьте поле пустым,
+            если интеграция не нужна.
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-sm font-medium text-slate-700">
+              <span>ID Яндекс Метрики</span>
+              <input
+                value={settings.yandexMetrikaId}
+                onChange={(event) =>
+                  updateField("yandexMetrikaId", event.target.value)
+                }
+                placeholder="например: 12345678"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3"
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium text-slate-700">
+              <span>ID Google Analytics (GA4)</span>
+              <input
+                value={settings.googleAnalyticsId}
+                onChange={(event) =>
+                  updateField("googleAnalyticsId", event.target.value)
+                }
+                placeholder="например: G-XXXXXXXXXX"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3"
               />
             </label>

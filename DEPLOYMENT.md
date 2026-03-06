@@ -155,9 +155,9 @@ Replace:
 - `www.example.com`
 - SSL certificate paths if needed
 - keep `client_max_body_size 50m;` for admin media uploads and file replacement
-- set correct absolute `alias` paths for:
-  - `location /uploads/` -> `<APP_DIR>/public/uploads/`
-  - `location /og/` -> `<APP_DIR>/public/og/`
+- set correct absolute `root` path for static runtime media:
+  - `location /uploads/ { root <APP_DIR>/public; try_files $uri =404; }`
+  - `location /og/ { root <APP_DIR>/public; try_files $uri =404; }`
   Example for nested deploy path: `/var/www/product/ramzident/public/uploads/`
 
 Enable site:

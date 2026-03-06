@@ -83,6 +83,7 @@ export default async function ContactsSection() {
           center={[settings.mapCenterLat, settings.mapCenterLng]}
           pin={[settings.mapPinLat, settings.mapPinLng]}
           zoom={settings.mapZoom}
+          apiKey={settings.yandexMapsApiKey}
         />
       </div>
     </section>

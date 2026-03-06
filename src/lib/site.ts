@@ -39,6 +39,9 @@ export const getSiteSettings = cache(async () => {
     mapPinLat: Number(dbSettings.mapPinLat || env.mapPinLat),
     mapPinLng: Number(dbSettings.mapPinLng || env.mapPinLng),
     mapZoom: Number(dbSettings.mapZoom || env.mapZoom),
+    yandexMapsApiKey: dbSettings.yandexMapsApiKey || env.yandexMapsApiKey,
+    yandexMetrikaId: dbSettings.yandexMetrikaId || env.yandexMetrikaId,
+    googleAnalyticsId: dbSettings.googleAnalyticsId || env.googleAnalyticsId,
     // The canonical site URL must come from env for deploy consistency.
     siteUrl: env.siteUrl,
     copyrightText: dbSettings.copyrightText || "",
