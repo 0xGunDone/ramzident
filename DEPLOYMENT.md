@@ -248,7 +248,7 @@ sudo chown -R ramzident:ramzident /var/www/ramzident/public/og
 - open `https://example.com`
 - verify `/admin/login`
 - verify media uploads work
-- if nginx returns `413`, verify the active nginx config still has `client_max_body_size 50m;` and reload nginx
+- if upload returns `413`, verify nginx has `client_max_body_size 50m;` and app is deployed with `experimental.proxyClientMaxBodySize` in `next.config.ts`
 - verify `https://example.com/og/site.jpg` returns `200` and `content-type: image/jpeg`
 - verify `https://example.com/opengraph-image` returns `200` and `content-type: image/png`
 - verify `/documents` and service pages open

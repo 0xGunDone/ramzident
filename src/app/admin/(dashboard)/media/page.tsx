@@ -19,7 +19,7 @@ const usageOptions = [
 
 async function getErrorMessage(response: Response, fallback: string) {
   if (response.status === 413) {
-    return "Лимит загрузки всё ещё режется на сервере. Проверьте `client_max_body_size` в nginx и перезагрузите nginx.";
+    return "Лимит загрузки режется на сервере. Проверьте `client_max_body_size` в nginx и `experimental.proxyClientMaxBodySize` в Next.js, затем перезагрузите сервис.";
   }
 
   try {

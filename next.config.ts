@@ -13,6 +13,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  experimental: {
+    // Next.js default is 10MB and can return 413 before route handlers parse multipart uploads.
+    proxyClientMaxBodySize: "60mb",
+  },
   images: {
     formats: ["image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200],
