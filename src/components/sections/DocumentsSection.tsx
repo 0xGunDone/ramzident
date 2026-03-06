@@ -54,13 +54,26 @@ export default async function DocumentsSection() {
                   {document.type}
                 </p>
                 <h3 className="mt-3 text-xl font-semibold text-[var(--ink-strong)]">
-                  {document.title}
+                  <Link
+                    href={`/documents/${document.slug}`}
+                    className="transition-colors hover:text-[var(--accent)]"
+                  >
+                    {document.title}
+                  </Link>
                 </h3>
                 {document.description ? (
                   <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
                     {document.description}
                   </p>
                 ) : null}
+                <div className="mt-4">
+                  <Link
+                    href={`/documents/${document.slug}`}
+                    className="text-sm font-semibold text-[var(--ink)] underline-offset-4 hover:underline"
+                  >
+                    Подробнее о документе
+                  </Link>
+                </div>
               </article>
             ))}
           </div>

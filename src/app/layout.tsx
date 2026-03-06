@@ -2,6 +2,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { getSiteSettings } from "@/lib/site";
 import { getTestimonialStats } from "@/lib/data";
+import { absoluteUrl } from "@/lib/url";
 
 export { generateMetadata } from "@/lib/seo";
 
@@ -29,49 +30,68 @@ export default async function RootLayout({
       ? addressParts.slice(3).join(", ")
       : addressParts[addressParts.length - 1];
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Dentist",
-    name: settings.clinicName,
-    image: `${settings.siteUrl}/opengraph-image`,
-    url: settings.siteUrl,
-    telephone: settings.phone,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress,
-      addressLocality: settings.city,
-      addressRegion: settings.region,
-      postalCode: settings.postalCode,
-      addressCountry: "RU",
+  const sameAs = [
+    "https://yandex.ru/maps/org/ramzi_dent/180026503415/?ll=35.894276%2C56.855939&z=14",
+  ];
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: settings.clinicName,
+      url: absoluteUrl("/"),
+      inLanguage: "ru-RU",
     },
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        opens: weekdayHours.opens,
-        closes: weekdayHours.closes,
+    {
+      "@context": "https://schema.org",
+      "@type": "Dentist",
+      name: settings.clinicName,
+      image: absoluteUrl("/opengraph-image"),
+      url: absoluteUrl("/"),
+      telephone: settings.phone,
+      email: settings.email || undefined,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress,
+        addressLocality: settings.city,
+        addressRegion: settings.region,
+        postalCode: settings.postalCode,
+        addressCountry: "RU",
       },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Saturday", "Sunday"],
-        opens: weekendHours.opens,
-        closes: weekendHours.closes,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: settings.mapPinLat,
+        longitude: settings.mapPinLng,
       },
-    ],
-    ...(stats.count > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: String(stats.avg),
-            reviewCount: String(stats.count),
-          },
-        }
-      : {}),
-    sameAs: [
-      "https://yandex.ru/maps/org/ramzi_dent/180026503415/?ll=35.894276%2C56.855939&z=14",
-    ],
-    priceRange: "$$",
-  };
+      hasMap: sameAs[0],
+      openingHoursSpecification: [
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          opens: weekdayHours.opens,
+          closes: weekdayHours.closes,
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Saturday", "Sunday"],
+          opens: weekendHours.opens,
+          closes: weekendHours.closes,
+        },
+      ],
+      ...(stats.count > 0
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: String(stats.avg),
+              reviewCount: String(stats.count),
+            },
+          }
+        : {}),
+      sameAs,
+      areaServed: settings.city,
+      priceRange: "$$",
+    },
+  ];
 
   return (
     <html lang="ru">

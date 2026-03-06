@@ -1,9 +1,8 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-import { env } from "@/lib/env";
+import { absoluteUrl } from "@/lib/url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = env.siteUrl;
   const [services, documents] = await Promise.all([
     prisma.service.findMany({
       where: { enabled: true },
@@ -11,36 +10,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     prisma.siteDocument.findMany({
       where: { enabled: true, fileId: { not: null } },
-      select: { updatedAt: true },
+      select: { slug: true, updatedAt: true },
     }),
   ]);
 
+  const latestDocumentUpdate =
+    documents.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
+      ?.updatedAt || new Date();
+
   return [
     {
-      url: baseUrl,
+      url: absoluteUrl("/"),
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${baseUrl}/services`,
+      url: absoluteUrl("/services"),
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
     },
     ...services.map((service) => ({
-      url: `${baseUrl}/services/${service.slug}`,
+      url: absoluteUrl(`/services/${service.slug}`),
       lastModified: service.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
-    {
-      url: `${baseUrl}/documents`,
-      lastModified:
-        documents.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
-          ?.updatedAt || new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
+    ...(documents.length > 0
+      ? [
+          {
+            url: absoluteUrl("/documents"),
+            lastModified: latestDocumentUpdate,
+            changeFrequency: "monthly" as const,
+            priority: 0.6,
+          },
+          ...documents.map((document) => ({
+            url: absoluteUrl(`/documents/${document.slug}`),
+            lastModified: document.updatedAt,
+            changeFrequency: "monthly" as const,
+            priority: 0.55,
+          })),
+        ]
+      : []),
   ];
 }

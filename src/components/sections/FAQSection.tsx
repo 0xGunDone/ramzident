@@ -24,6 +24,18 @@ export default async function FAQSection() {
   if (!section?.enabled || faqItems.length === 0) return null;
 
   const content = parseSectionContent(section.content, fallbackContent);
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
 
   return (
     <section id="faq" className="section-space">
@@ -53,6 +65,10 @@ export default async function FAQSection() {
           ))}
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </section>
   );
 }

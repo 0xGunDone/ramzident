@@ -87,7 +87,7 @@ export default async function Footer() {
               {documents.length > 0 ? (
                 <div className="flex flex-col gap-2 pt-2">
                   {documents.map((document) => (
-                    <Link key={document.id} href="/documents">
+                    <Link key={document.id} href={`/documents/${document.slug}`}>
                       {document.title}
                     </Link>
                   ))}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -7,14 +8,23 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = createSocialMetadata({
-  title: "Документы",
-  description:
-    "Лицензии, политика конфиденциальности и обязательная информация стоматологической клиники Рамзи Дент в Твери.",
-  imageAlt: "Документы Рамзи Дент",
-  ogPath: "/documents/opengraph-image",
-  twitterPath: "/documents/twitter-image",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const documentsCount = await prisma.siteDocument.count({
+    where: { enabled: true, fileId: { not: null } },
+  });
+
+  return createSocialMetadata({
+    title: "Документы",
+    description:
+      "Лицензии, политика конфиденциальности и обязательная информация стоматологической клиники Рамзи Дент в Твери.",
+    imageAlt: "Документы Рамзи Дент",
+    ogPath: "/documents/opengraph-image",
+    twitterPath: "/documents/twitter-image",
+    canonicalPath: "/documents",
+    openGraphUrl: "/documents",
+    noindex: documentsCount === 0,
+  });
+}
 
 export default async function DocumentsPage() {
   const documents = await prisma.siteDocument.findMany({
@@ -38,11 +48,8 @@ export default async function DocumentsPage() {
           {documents.length > 0 ? (
             <div className="grid gap-4">
               {documents.map((document) => (
-                <a
+                <article
                   key={document.id}
-                  href={document.file?.path || undefined}
-                  target="_blank"
-                  rel="noreferrer"
                   className="surface-card flex flex-col gap-3 rounded-[1.8rem] px-6 py-6 transition-transform hover:-translate-y-0.5 md:flex-row md:items-center md:justify-between"
                 >
                   <div>
@@ -50,7 +57,9 @@ export default async function DocumentsPage() {
                       {document.type}
                     </p>
                     <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">
-                      {document.title}
+                      <Link href={`/documents/${document.slug}`} className="transition-colors hover:text-[var(--accent)]">
+                        {document.title}
+                      </Link>
                     </h2>
                     {document.description ? (
                       <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)]">
@@ -58,10 +67,25 @@ export default async function DocumentsPage() {
                       </p>
                     ) : null}
                   </div>
-                  <span className="inline-flex items-center justify-center rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold text-[var(--ink)]">
-                    Открыть файл
-                  </span>
-                </a>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      href={`/documents/${document.slug}`}
+                      className="inline-flex items-center justify-center rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold text-[var(--ink)]"
+                    >
+                      Страница документа
+                    </Link>
+                    {document.file?.path ? (
+                      <a
+                        href={document.file.path}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm font-semibold text-white"
+                      >
+                        Открыть файл
+                      </a>
+                    ) : null}
+                  </div>
+                </article>
               ))}
             </div>
           ) : (

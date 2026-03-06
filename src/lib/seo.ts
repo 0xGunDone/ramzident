@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { getSiteSettings } from "@/lib/site";
 import { createSocialMetadata } from "@/lib/metadata";
+import { getSiteUrl } from "@/lib/url";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -13,22 +14,20 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     imageAlt: clinicName,
-    ogPath: `${settings.siteUrl}/opengraph-image`,
-    twitterPath: `${settings.siteUrl}/twitter-image`,
-    openGraphUrl: settings.siteUrl,
+    ogPath: "/opengraph-image",
+    twitterPath: "/twitter-image",
+    canonicalPath: "/",
+    openGraphUrl: "/",
   });
 
   return {
-    metadataBase: new URL(settings.siteUrl || env.siteUrl),
+    metadataBase: new URL(getSiteUrl() || env.siteUrl),
     title: {
       default: title,
       template: `%s | ${clinicName}`,
     },
     description,
     applicationName: clinicName,
-    alternates: {
-      canonical: "/",
-    },
     ...social,
     openGraph: {
       ...social.openGraph,

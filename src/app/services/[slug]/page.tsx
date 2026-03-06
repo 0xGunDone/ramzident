@@ -8,6 +8,7 @@ import PhoneLink from "@/components/ui/PhoneLink";
 import { createSocialMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
+import { absoluteUrl } from "@/lib/url";
 
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
@@ -26,25 +27,20 @@ export async function generateMetadata({
   params,
 }: ServicePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const [service, settings] = await Promise.all([
-    prisma.service.findUnique({ where: { slug } }),
-    getSiteSettings(),
-  ]);
+  const service = await prisma.service.findUnique({ where: { slug } });
 
   if (!service) {
     return {};
   }
 
-  const ogImage = `${settings.siteUrl}/services/${slug}/opengraph-image`;
-  const twitterImage = `${settings.siteUrl}/services/${slug}/twitter-image`;
-
   return createSocialMetadata({
     title: service.seoTitle || service.title,
     description: service.seoDescription || service.summary || service.description,
     imageAlt: service.title,
-    ogPath: ogImage,
-    twitterPath: twitterImage,
-    openGraphUrl: `${settings.siteUrl}/services/${slug}`,
+    ogPath: `/services/${slug}/opengraph-image`,
+    twitterPath: `/services/${slug}/twitter-image`,
+    canonicalPath: `/services/${slug}`,
+    openGraphUrl: `/services/${slug}`,
   });
 }
 
@@ -72,12 +68,65 @@ export default async function ServicePage({ params }: ServicePageProps) {
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Услуги",
+        item: absoluteUrl("/services"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: service.title,
+        item: absoluteUrl(`/services/${service.slug}`),
+      },
+    ],
+  };
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.title,
+    description: service.seoDescription || service.summary || service.description,
+    url: absoluteUrl(`/services/${service.slug}`),
+    areaServed: settings.city,
+    provider: {
+      "@type": "Dentist",
+      name: settings.clinicName,
+      url: absoluteUrl("/"),
+      telephone: settings.phone,
+      address: settings.address,
+    },
+    ...(service.priceFrom
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceSpecification: {
+              "@type": "PriceSpecification",
+              priceCurrency: "RUB",
+              description: service.priceFrom,
+            },
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
       <main className="section-space">
         <div className="site-container space-y-10">
-          <nav className="text-sm text-[var(--muted)]">
+          <nav aria-label="Хлебные крошки" className="text-sm text-[var(--muted)]">
             <Link href="/">Главная</Link> / <Link href="/services">Услуги</Link> /{" "}
             <span className="text-[var(--ink)]">{service.title}</span>
           </nav>
@@ -177,6 +226,12 @@ export default async function ServicePage({ params }: ServicePageProps) {
         </div>
       </main>
       <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([breadcrumbSchema, serviceSchema]),
+        }}
+      />
     </div>
   );
 }

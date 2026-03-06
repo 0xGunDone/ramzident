@@ -15,6 +15,8 @@ export const metadata: Metadata = createSocialMetadata({
   imageAlt: "Услуги Рамзи Дент",
   ogPath: "/services/opengraph-image",
   twitterPath: "/services/twitter-image",
+  canonicalPath: "/services",
+  openGraphUrl: "/services",
 });
 
 export default async function ServicesPage() {

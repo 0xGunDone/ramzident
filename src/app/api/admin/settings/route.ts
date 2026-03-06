@@ -14,9 +14,10 @@ export const GET = withAuth(async () => {
 
 export const PUT = withAuth(async (request) => {
   const body = (await request.json()) as Record<string, string>;
+  const entries = Object.entries(body).filter(([key]) => key !== "siteUrl");
 
   await prisma.$transaction(
-    Object.entries(body).map(([key, value]) =>
+    entries.map(([key, value]) =>
       prisma.siteSettings.upsert({
         where: { key },
         update: { value: String(value ?? "") },

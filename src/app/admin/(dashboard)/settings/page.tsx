@@ -19,7 +19,6 @@ const defaults = {
   mapPinLat: "56.855958248139",
   mapPinLng: "35.894215563158",
   mapZoom: "17",
-  siteUrl: "https://ramzident.ru",
   copyrightText: "",
   creatorName: "",
   creatorUrl: "",
@@ -57,10 +56,14 @@ export default function SettingsManager() {
     setSaving(true);
 
     try {
+      const { siteUrl: _siteUrl, ...payload } = settings as typeof defaults & {
+        siteUrl?: string;
+      };
+
       const response = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -83,7 +86,8 @@ export default function SettingsManager() {
         <h1 className="text-3xl font-semibold text-slate-950">Настройки сайта</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">
           Все настройки клиники хранятся в базе данных и редактируются здесь.
-          Переменные окружения используются только как резервные значения.
+          Переменные окружения используются только как резервные значения, а
+          домен сайта всегда берётся из `SITE_URL` на сервере.
         </p>
       </div>
 
@@ -152,14 +156,6 @@ export default function SettingsManager() {
               <input
                 value={settings.postalCode}
                 onChange={(event) => updateField("postalCode", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3"
-              />
-            </label>
-            <label className="space-y-2 text-sm font-medium text-slate-700">
-              <span>URL сайта</span>
-              <input
-                value={settings.siteUrl}
-                onChange={(event) => updateField("siteUrl", event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3"
               />
             </label>

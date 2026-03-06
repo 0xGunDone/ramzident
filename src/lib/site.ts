@@ -39,7 +39,8 @@ export const getSiteSettings = cache(async () => {
     mapPinLat: Number(dbSettings.mapPinLat || env.mapPinLat),
     mapPinLng: Number(dbSettings.mapPinLng || env.mapPinLng),
     mapZoom: Number(dbSettings.mapZoom || env.mapZoom),
-    siteUrl: dbSettings.siteUrl || env.siteUrl,
+    // The canonical site URL must come from env for deploy consistency.
+    siteUrl: env.siteUrl,
     copyrightText: dbSettings.copyrightText || "",
     creatorName: dbSettings.creatorName || "",
     creatorUrl: dbSettings.creatorUrl || "",
