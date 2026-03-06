@@ -64,11 +64,31 @@ sync_service_writable_path() {
     return
   fi
 
+  local changed=0
+
+  if grep -q "^WorkingDirectory=" "$SERVICE_FILE" && ! grep -Fq "WorkingDirectory=${APP_DIR}" "$SERVICE_FILE"; then
+    log "Syncing WorkingDirectory in ${SERVICE_FILE}"
+    run_root sed -i.bak "s|^WorkingDirectory=.*|WorkingDirectory=${APP_DIR}|" "$SERVICE_FILE"
+    changed=1
+  fi
+
+  if grep -q "^EnvironmentFile=" "$SERVICE_FILE" && ! grep -Fq "EnvironmentFile=${APP_DIR}/.env" "$SERVICE_FILE"; then
+    log "Syncing EnvironmentFile in ${SERVICE_FILE}"
+    run_root sed -i.bak "s|^EnvironmentFile=.*|EnvironmentFile=${APP_DIR}/.env|" "$SERVICE_FILE"
+    changed=1
+  fi
+
   if ! grep -q "^ProtectSystem=full" "$SERVICE_FILE"; then
+    if [ "$changed" -eq 1 ]; then
+      run_root systemctl daemon-reload
+    fi
     return
   fi
 
   if grep -Fq "$APP_DIR" "$SERVICE_FILE"; then
+    if [ "$changed" -eq 1 ]; then
+      run_root systemctl daemon-reload
+    fi
     return
   fi
 
@@ -80,7 +100,32 @@ sync_service_writable_path() {
     run_root sh -c "printf '\nReadWritePaths=%s\n' '$APP_DIR' >> '$SERVICE_FILE'"
   fi
 
-  run_root systemctl daemon-reload
+  changed=1
+
+  if [ "$changed" -eq 1 ]; then
+    run_root systemctl daemon-reload
+  fi
+}
+
+prewarm_routes() {
+  local site_url="${SITE_URL:-}"
+
+  if [ -z "$site_url" ] && [ -f "${APP_DIR}/.env" ]; then
+    site_url="$(grep -E '^SITE_URL=' "${APP_DIR}/.env" | tail -n 1 | cut -d= -f2- | tr -d '"' || true)"
+  fi
+
+  if [ -z "$site_url" ]; then
+    return
+  fi
+
+  log "Prewarming homepage and OG routes"
+  run_as_app "curl -fsS '${site_url}/' >/dev/null"
+  run_as_app "curl -fsS '${site_url}/opengraph-image' >/dev/null"
+  run_as_app "curl -fsS '${site_url}/twitter-image' >/dev/null"
+}
+
+sync_service_paths() {
+  sync_service_writable_path
 }
 
 main() {
@@ -89,13 +134,14 @@ main() {
   log "Deploying ${APP_DIR}"
   ensure_repo_ownership
   ensure_writable_paths
-  sync_service_writable_path
+  sync_service_paths
 
   log "Pulling ${DEPLOY_REMOTE}/${DEPLOY_BRANCH}"
   run_as_app "cd '$APP_DIR' && git pull --ff-only '$DEPLOY_REMOTE' '$DEPLOY_BRANCH'"
 
   ensure_repo_ownership
   ensure_writable_paths
+  sync_service_paths
 
   log "Installing dependencies"
   run_as_app "cd '$APP_DIR' && npm install"
@@ -114,7 +160,9 @@ main() {
   ensure_writable_paths
 
   log "Restarting ${SERVICE_NAME}"
+  run_root systemctl daemon-reload
   run_root systemctl restart "$SERVICE_NAME"
+  prewarm_routes
 
   log "Deployment complete"
 }
