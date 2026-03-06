@@ -107,4 +107,6 @@ export interface MediaOption {
   mimeType?: string;
 }
 
-export const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20 MB
+export const MAX_UPLOAD_SIZE_MB = 50;
+export const MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+export const MAX_UPLOAD_SIZE_ERROR = `Файл слишком большой. Максимум — ${MAX_UPLOAD_SIZE_MB} МБ.`;

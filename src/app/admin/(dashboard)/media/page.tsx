@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
 import type { MediaItem } from "@/types";
 import { isUploadedMediaPath } from "@/lib/images";
 
@@ -17,6 +18,10 @@ const usageOptions = [
 ];
 
 async function getErrorMessage(response: Response, fallback: string) {
+  if (response.status === 413) {
+    return "Лимит загрузки всё ещё режется на сервере. Проверьте `client_max_body_size` в nginx и перезагрузите nginx.";
+  }
+
   try {
     const data = await response.json();
     if (typeof data?.error === "string" && data.error.trim().length > 0) {
@@ -25,6 +30,15 @@ async function getErrorMessage(response: Response, fallback: string) {
   } catch {}
 
   return fallback;
+}
+
+function validateUploadSize(file: File) {
+  if (file.size <= MAX_UPLOAD_SIZE) {
+    return true;
+  }
+
+  toast.error(MAX_UPLOAD_SIZE_ERROR);
+  return false;
 }
 
 export default function MediaManager() {
@@ -85,6 +99,10 @@ export default function MediaManager() {
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!validateUploadSize(file)) {
+      event.target.value = "";
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -130,6 +148,10 @@ export default function MediaManager() {
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!validateUploadSize(file)) {
+      event.target.value = "";
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);

@@ -7,7 +7,7 @@ import {
   removePublicFile,
   storeUploadedFile,
 } from "@/lib/media-storage";
-import { MAX_UPLOAD_SIZE } from "@/types";
+import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
@@ -28,10 +28,7 @@ export const PUT = withAuth(async (request, context) => {
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {
-      return NextResponse.json(
-        { error: "Файл слишком большой. Максимум — 20 МБ." },
-        { status: 413 }
-      );
+      return NextResponse.json({ error: MAX_UPLOAD_SIZE_ERROR }, { status: 413 });
     }
 
     let storedFilePath: string | null = null;

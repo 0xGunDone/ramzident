@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
-import { MAX_UPLOAD_SIZE } from "@/types";
+import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
 import {
   cleanupStoredFile,
   getUploadErrorMessage,
@@ -28,10 +28,7 @@ export const POST = withAuth(async (request) => {
   }
 
   if (file.size > MAX_UPLOAD_SIZE) {
-    return NextResponse.json(
-      { error: "Файл слишком большой. Максимум — 20 МБ." },
-      { status: 413 }
-    );
+    return NextResponse.json({ error: MAX_UPLOAD_SIZE_ERROR }, { status: 413 });
   }
 
   let storedFilePath: string | null = null;
