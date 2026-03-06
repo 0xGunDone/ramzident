@@ -19,7 +19,9 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=true
-ReadWritePaths=/var/www/ramzident
+# Keep uploads and SQLite writable even when the app lives in a nested folder
+# such as /var/www/product/ramzident.
+ReadWritePaths=/var/www
 
 [Install]
 WantedBy=multi-user.target

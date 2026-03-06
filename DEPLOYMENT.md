@@ -51,6 +51,10 @@ This is required for two things:
 - SQLite must be writable in `prisma/dev.db`
 - media uploads must be writable in `public/uploads`
 
+If your real path is nested, for example `/var/www/product/ramzident`, make sure
+the service unit allows writes there too. The included deploy script handles this
+automatically.
+
 ## 4. Configure Environment
 
 Create production `.env`:
@@ -192,6 +196,29 @@ sudo systemctl restart ramzident
 ```
 
 If no migrations were added, `prisma migrate deploy` can be skipped.
+
+Or use the deploy script from the repo root:
+
+```bash
+sudo APP_USER=ramzident SERVICE_NAME=ramzident ./scripts/deploy-production.sh
+```
+
+For a nested path such as `/var/www/product/ramzident`, run it from that repo
+directory or pass the path explicitly:
+
+```bash
+cd /var/www/product/ramzident
+sudo APP_USER=ramzident SERVICE_NAME=ramzident ./scripts/deploy-production.sh
+```
+
+The script will:
+
+- fix ownership of the repo
+- recreate writable `prisma/` and `public/uploads/`
+- recreate writable `prisma/dev.db`
+- patch `ReadWritePaths` in the systemd unit when `ProtectSystem=full` blocks writes
+- run `git pull`, `npm install`, `prisma generate`, `prisma migrate deploy`, `npm run build`
+- restart the service
 
 ## 12. File Permissions
 
