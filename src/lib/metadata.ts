@@ -47,6 +47,7 @@ export function createSocialMetadata({
       images: [
         {
           url: resolvedOgPath,
+          secureUrl: resolvedOgPath,
           width: ogSize.width,
           height: ogSize.height,
           alt: imageAlt,
