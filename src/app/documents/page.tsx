@@ -90,7 +90,8 @@ export default async function DocumentsPage() {
             </div>
           ) : (
             <div className="surface-card rounded-[2rem] px-6 py-8 text-base leading-8 text-[var(--muted)]">
-              Документы скоро появятся в этом разделе.
+              В этом разделе публикуются лицензии и другие официальные документы
+              клиники.
             </div>
           )}
         </div>

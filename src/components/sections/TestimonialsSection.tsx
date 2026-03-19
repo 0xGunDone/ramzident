@@ -11,8 +11,8 @@ interface TestimonialsContent {
 }
 
 const fallbackContent: TestimonialsContent = {
-  rating: "4.7",
-  reviewCount: "41",
+  rating: "4.9",
+  reviewCount: "70+",
   sourceLabel: "Яндекс Карты",
   sourceUrl:
     "https://yandex.ru/maps/org/ramzi_dent/180026503415/?ll=35.894276%2C56.855939&z=14",
@@ -40,23 +40,23 @@ export default async function TestimonialsSection() {
           <SectionHeading
             eyebrow="Доверие"
             title={section.title || "Пациенты отмечают спокойный сервис"}
-            description="Вместо вымышленных оценок сайт показывает фактический рейтинг и мягко пересобранные темы из отзывов."
+            description="Пациенты чаще всего отмечают внимательный подход, спокойный приём и понятные объяснения по лечению."
           />
           <div className="surface-card flex flex-col gap-4 rounded-[2rem] p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
-                Актуальная база доверия
+                Рейтинг и отзывы
               </p>
               <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
-                По данным {content.sourceLabel} у клиники {content.reviewCount}{" "}
-                отзывов с рейтингом {content.rating}.
+                На {content.sourceLabel} у клиники {content.reviewCount} отзывов и
+                рейтинг {content.rating}.
               </p>
             </div>
             <Link
               href={content.sourceUrl}
               className="inline-flex shrink-0 items-center justify-center rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold text-[var(--ink)] transition-all duration-300 hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
             >
-              Яндекс Карты
+              {content.sourceLabel}
             </Link>
           </div>
         </div>

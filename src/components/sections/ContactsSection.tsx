@@ -41,8 +41,8 @@ export default async function ContactsSection() {
                 className="mt-3 inline-flex text-3xl font-semibold text-[var(--ink-strong)]"
               />
               <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                Запись и уточнение деталей только по телефону. Формы на сайте не
-                используются.
+                Запись на консультацию, лечение и контрольные визиты ведётся по
+                телефону клиники.
               </p>
             </div>
 
@@ -54,8 +54,8 @@ export default async function ContactsSection() {
                 {settings.address}
               </p>
               <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-                Входная группа и фотографии клиники дополнительно подтверждаются
-                по Яндекс Картам.
+                Клинику удобно найти по карте на этой странице и по адресу на улице
+                Брагина.
               </p>
             </div>
 

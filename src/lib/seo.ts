@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const clinicName = settings.clinicName;
   const title = `${clinicName} — стоматология для взрослых и детей в Твери`;
   const description =
-    "Рамзи Дент в Твери: терапия, детская стоматология, ортодонтия, хирургия, имплантация и эстетические процедуры. Запись по телефону.";
+    "Стоматологическая клиника Рамзи Дент в Твери: терапия, детская стоматология, хирургия, имплантация, ортодонтия и эстетическая стоматология. Запись по телефону.";
   const social = createSocialMetadata({
     title,
     description,
@@ -29,6 +29,15 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     applicationName: clinicName,
+    keywords: [
+      "стоматология Тверь",
+      "стоматологическая клиника Тверь",
+      "детская стоматология Тверь",
+      "имплантация зубов Тверь",
+      "ортодонтия Тверь",
+      "лечение кариеса Тверь",
+    ],
+    category: "healthcare",
     ...social,
     openGraph: {
       ...social.openGraph,

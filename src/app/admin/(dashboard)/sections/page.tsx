@@ -296,9 +296,9 @@ function TestimonialsEditor({ data, onChange }: { data: ContentMap; onChange: (d
   const set = (key: string, value: unknown) => onChange({ ...data, [key]: value });
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <StringField label="Рейтинг" value={String(data.rating || "")} onChange={(v) => set("rating", v)} placeholder="4.7" />
-      <StringField label="Количество отзывов" value={String(data.reviewCount || "")} onChange={(v) => set("reviewCount", v)} placeholder="41" />
-      <StringField label="Источник" value={String(data.sourceLabel || "")} onChange={(v) => set("sourceLabel", v)} placeholder="Яндекс Карты, март 2026" />
+      <StringField label="Рейтинг" value={String(data.rating || "")} onChange={(v) => set("rating", v)} placeholder="4.9" />
+      <StringField label="Количество отзывов" value={String(data.reviewCount || "")} onChange={(v) => set("reviewCount", v)} placeholder="70+" />
+      <StringField label="Источник" value={String(data.sourceLabel || "")} onChange={(v) => set("sourceLabel", v)} placeholder="Яндекс Карты" />
       <StringField label="Ссылка на источник" value={String(data.sourceUrl || "")} onChange={(v) => set("sourceUrl", v)} placeholder="https://yandex.ru/maps/..." />
     </div>
   );

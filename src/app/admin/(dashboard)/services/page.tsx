@@ -198,8 +198,8 @@ export default function ServicesManager() {
         <div>
           <h1 className="text-3xl font-semibold text-slate-950">Услуги</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            Здесь редактируются карточки главной страницы и SEO-страницы услуг:
-            заголовки, описание, цены, продолжительность, фото и порядок вывода.
+            Здесь редактируются карточки услуг и страницы направлений: заголовки,
+            описания, цены, продолжительность, фото и порядок вывода.
           </p>
         </div>
         <div className="flex items-center gap-3">

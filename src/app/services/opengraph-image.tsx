@@ -14,6 +14,6 @@ export default async function OpenGraphImage() {
     accent: settings.clinicName,
     description:
       "Терапия, хирургия, имплантация, ортодонтия, детская стоматология и эстетические процедуры.",
-    tags: ["Тверь", "SEO-страницы услуг", settings.phone],
+    tags: [settings.city, "Стоматология", settings.phone],
   });
 }

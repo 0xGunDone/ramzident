@@ -6,14 +6,17 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getServicesIndexStaticOgPath } from "@/lib/og-static";
 import { prisma } from "@/lib/prisma";
+import { getSiteSettings } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+
   return createSocialMetadata({
-    title: "Услуги",
+    title: `Стоматологические услуги в Твери | ${settings.clinicName}`,
     description:
-      "Стоматологические услуги клиники Рамзи Дент в Твери: терапия, хирургия, имплантация, ортодонтия, детская стоматология, эстетические процедуры.",
+      "Терапия, детская стоматология, хирургия, имплантация, ортодонтия и эстетическая стоматология в клинике Рамзи Дент в Твери.",
     imageAlt: "Услуги Рамзи Дент",
     ogPath: await getServicesIndexStaticOgPath(),
     canonicalPath: "/services",
@@ -34,8 +37,8 @@ export default async function ServicesPage() {
         <div className="site-container space-y-10">
           <SectionHeading
             eyebrow="Услуги"
-            title="Страницы основных направлений"
-            description="Каждая услуга получила отдельную SEO-страницу, чтобы пациент мог быстро понять направление и перейти к звонку в клинику."
+            title="Основные направления лечения"
+            description="Выберите нужное направление: терапия, детский приём, хирургия, имплантация, ортодонтия и эстетическая стоматология."
             as="h1"
           />
 

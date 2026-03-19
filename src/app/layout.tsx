@@ -2,6 +2,7 @@ import "./globals.css";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import { STATIC_OG_PATHS } from "@/lib/og-paths";
+import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { getTestimonialStats } from "@/lib/data";
 import { absoluteUrl } from "@/lib/url";
@@ -22,9 +23,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [settings, stats] = await Promise.all([
+  const [settings, stats, services] = await Promise.all([
     getSiteSettings(),
     getTestimonialStats(),
+    prisma.service.findMany({
+      where: { enabled: true },
+      orderBy: { order: "asc" },
+      select: { title: true, slug: true },
+    }),
   ]);
   const metrikaId = normalizeMetrikaId(settings.yandexMetrikaId || "");
   const gaId = (settings.googleAnalyticsId || "").trim();
@@ -56,6 +62,7 @@ export default async function RootLayout({
       name: settings.clinicName,
       image: absoluteUrl(STATIC_OG_PATHS.home),
       url: absoluteUrl("/"),
+      "@id": absoluteUrl("/#organization"),
       telephone: settings.phone,
       email: settings.email || undefined,
       address: {
@@ -98,6 +105,29 @@ export default async function RootLayout({
       sameAs,
       areaServed: settings.city,
       priceRange: "$$",
+      medicalSpecialty: "Dentistry",
+      hasOfferCatalog:
+        services.length > 0
+          ? {
+              "@type": "OfferCatalog",
+              name: `Услуги ${settings.clinicName}`,
+              itemListElement: services.map((service) => ({
+                "@type": "Offer",
+                itemOffered: {
+                  "@type": "Service",
+                  name: service.title,
+                  url: absoluteUrl(`/services/${service.slug}`),
+                },
+              })),
+            }
+          : undefined,
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer service",
+        telephone: settings.phone,
+        areaServed: "RU",
+        availableLanguage: ["ru"],
+      },
     },
   ];
 

@@ -29,14 +29,17 @@ export async function generateMetadata({
   params,
 }: ServicePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const service = await prisma.service.findUnique({ where: { slug } });
+  const [service, settings] = await Promise.all([
+    prisma.service.findUnique({ where: { slug } }),
+    getSiteSettings(),
+  ]);
 
   if (!service) {
     return {};
   }
 
   return createSocialMetadata({
-    title: service.seoTitle || service.title,
+    title: `${service.seoTitle || service.title} | ${settings.clinicName}`,
     description: service.seoDescription || service.summary || service.description,
     imageAlt: service.title,
     ogPath: getServiceStaticOgPathWithVersion(service),
@@ -98,20 +101,33 @@ export default async function ServicePage({ params }: ServicePageProps) {
     "@context": "https://schema.org",
     "@type": "Service",
     name: service.title,
+    serviceType: service.title,
+    category: "Стоматология",
     description: service.seoDescription || service.summary || service.description,
     url: absoluteUrl(`/services/${service.slug}`),
-    areaServed: settings.city,
+    areaServed: {
+      "@type": "City",
+      name: settings.city,
+    },
     provider: {
       "@type": "Dentist",
       name: settings.clinicName,
       url: absoluteUrl("/"),
       telephone: settings.phone,
-      address: settings.address,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: settings.address,
+        addressLocality: settings.city,
+        addressRegion: settings.region,
+        postalCode: settings.postalCode,
+        addressCountry: "RU",
+      },
     },
     ...(service.priceFrom
       ? {
           offers: {
             "@type": "Offer",
+            url: absoluteUrl(`/services/${service.slug}`),
             priceSpecification: {
               "@type": "PriceSpecification",
               priceCurrency: "RUB",
