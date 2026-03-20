@@ -31,6 +31,10 @@ const defaults = {
 
 type SettingsForm = typeof defaults;
 const SETTINGS_KEYS = Object.keys(defaults) as Array<keyof SettingsForm>;
+type SaveSettingsResponse = {
+  openRouterApiKeyConfigured?: boolean;
+  success?: boolean;
+};
 
 function normalizeSettingsPayload(raw: Record<string, unknown>): SettingsForm {
   const normalized: SettingsForm = { ...defaults };
@@ -106,11 +110,29 @@ export default function SettingsManager() {
     setSaving(true);
 
     try {
+      const form = event.currentTarget;
+      const formData = new FormData(form as HTMLFormElement);
+      const liveOpenRouterApiKey = String(
+        formData.get("openRouterApiKey") ?? settings.openRouterApiKey
+      );
+      const liveYandexMapsApiKey = String(
+        formData.get("yandexMapsApiKey") ?? settings.yandexMapsApiKey
+      );
       const payload: Record<string, string | boolean> = {
         clearOpenRouterApiKey,
       };
 
       for (const key of SETTINGS_KEYS) {
+        if (key === "openRouterApiKey") {
+          payload[key] = liveOpenRouterApiKey;
+          continue;
+        }
+
+        if (key === "yandexMapsApiKey") {
+          payload[key] = liveYandexMapsApiKey;
+          continue;
+        }
+
         payload[key] = settings[key];
       }
 
@@ -125,12 +147,12 @@ export default function SettingsManager() {
         throw new Error(message);
       }
 
-      const hasNewOpenRouterApiKey = settings.openRouterApiKey.trim().length > 0;
-      if (clearOpenRouterApiKey) {
-        setOpenRouterApiKeyConfigured(false);
-      } else if (hasNewOpenRouterApiKey) {
-        setOpenRouterApiKeyConfigured(true);
-      }
+      const result = (await response.json()) as SaveSettingsResponse;
+      setOpenRouterApiKeyConfigured(
+        typeof result.openRouterApiKeyConfigured === "boolean"
+          ? result.openRouterApiKeyConfigured
+          : false
+      );
       setSettings((current) => ({ ...current, openRouterApiKey: "" }));
       setClearOpenRouterApiKey(false);
       toast.success("Настройки сохранены");
@@ -302,10 +324,12 @@ export default function SettingsManager() {
               <span>API ключ Яндекс Карт</span>
               <input
                 type="password"
+                name="yandexMapsApiKey"
                 value={settings.yandexMapsApiKey}
                 onChange={(event) =>
                   updateField("yandexMapsApiKey", event.target.value)
                 }
+                autoComplete="off"
                 placeholder="например: 18c6f1f9-...."
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-mono text-xs"
               />
@@ -399,10 +423,12 @@ export default function SettingsManager() {
               <span>API ключ OpenRouter</span>
               <input
                 type="password"
+                name="openRouterApiKey"
                 value={settings.openRouterApiKey}
                 onChange={(event) =>
                   updateField("openRouterApiKey", event.target.value)
                 }
+                autoComplete="off"
                 placeholder="sk-or-v1-..."
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-mono text-xs"
               />

@@ -43,10 +43,12 @@ export const PUT = withAuth(async (request) => {
   }
 
   await upsertSettings(entries);
+  const persistedOpenRouterApiKey = (
+    await getSettingValue("openRouterApiKey")
+  ).trim();
 
   if (submittedOpenRouterApiKey.length > 0 && !clearOpenRouterApiKey) {
-    const persisted = (await getSettingValue("openRouterApiKey")).trim();
-    if (!persisted) {
+    if (!persistedOpenRouterApiKey) {
       throw new ApiError(
         "Ключ OpenRouter сохранён, но не читается на сервере. Проверьте, что SETTINGS_ENCRYPTION_KEY задан и не меняется между перезапусками, затем сохраните ключ повторно.",
         {
@@ -58,8 +60,7 @@ export const PUT = withAuth(async (request) => {
   }
 
   if (clearOpenRouterApiKey) {
-    const persisted = (await getSettingValue("openRouterApiKey")).trim();
-    if (persisted.length > 0) {
+    if (persistedOpenRouterApiKey.length > 0) {
       throw new ApiError("Не удалось очистить ключ OpenRouter.", {
         status: 500,
         code: "OPENROUTER_KEY_CLEAR_FAILED",
@@ -72,5 +73,8 @@ export const PUT = withAuth(async (request) => {
   });
 
   revalidatePublicSite();
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    openRouterApiKeyConfigured: persistedOpenRouterApiKey.length > 0,
+  });
 });

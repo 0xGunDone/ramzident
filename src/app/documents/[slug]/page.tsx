@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getDocumentStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
+import { isPrismaMissingTableError } from "@/lib/prisma-errors";
 import { absoluteUrl } from "@/lib/url";
 
 interface DocumentPageProps {
@@ -26,12 +27,22 @@ async function getDocumentBySlug(slug: string) {
 }
 
 export async function generateStaticParams() {
-  const documents = await prisma.siteDocument.findMany({
-    where: { enabled: true, fileId: { not: null } },
-    select: { slug: true },
-  });
+  try {
+    const documents = await prisma.siteDocument.findMany({
+      where: { enabled: true, fileId: { not: null } },
+      select: { slug: true },
+    });
 
-  return documents.map((document: { slug: string }) => ({ slug: document.slug }));
+    return documents.map((document: { slug: string }) => ({
+      slug: document.slug,
+    }));
+  } catch (error) {
+    if (isPrismaMissingTableError(error)) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 export async function generateMetadata({

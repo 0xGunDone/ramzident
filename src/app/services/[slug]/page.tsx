@@ -9,6 +9,7 @@ import { isUploadedMediaPath } from "@/lib/images";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getServiceStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
+import { isPrismaMissingTableError } from "@/lib/prisma-errors";
 import { getServiceDetailContent } from "@/lib/service-details";
 import { getSiteSettings } from "@/lib/site";
 import { absoluteUrl } from "@/lib/url";
@@ -73,12 +74,20 @@ function DetailCard({
 }
 
 export async function generateStaticParams() {
-  const services: ServiceSlugParam[] = await prisma.service.findMany({
-    where: { enabled: true },
-    select: { slug: true },
-  });
+  try {
+    const services: ServiceSlugParam[] = await prisma.service.findMany({
+      where: { enabled: true },
+      select: { slug: true },
+    });
 
-  return services.map((service: ServiceSlugParam) => ({ slug: service.slug }));
+    return services.map((service: ServiceSlugParam) => ({ slug: service.slug }));
+  } catch (error) {
+    if (isPrismaMissingTableError(error)) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 export async function generateMetadata({

@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
+import { isPrismaMissingTableError } from "@/lib/prisma-errors";
 import { absoluteUrl } from "@/lib/url";
 
 interface SlugWithUpdatedAt {
@@ -17,33 +18,46 @@ interface UpdatedAtOnly {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [services, documents, sections, doctors, testimonials, faqItems] =
-    await Promise.all([
-      prisma.service.findMany({
-        where: { enabled: true },
-        select: { slug: true, updatedAt: true },
-      }) as Promise<SlugWithUpdatedAt[]>,
-      prisma.siteDocument.findMany({
-        where: { enabled: true, fileId: { not: null } },
-        select: { slug: true, updatedAt: true },
-      }) as Promise<SlugWithUpdatedAt[]>,
-      prisma.section.findMany({
-        where: { enabled: true },
-        select: { type: true, updatedAt: true },
-      }) as Promise<SectionWithUpdatedAt[]>,
-      prisma.doctor.findMany({
-        where: { enabled: true },
-        select: { updatedAt: true },
-      }) as Promise<UpdatedAtOnly[]>,
-      prisma.testimonial.findMany({
-        where: { enabled: true },
-        select: { updatedAt: true },
-      }) as Promise<UpdatedAtOnly[]>,
-      prisma.faqItem.findMany({
-        where: { enabled: true },
-        select: { updatedAt: true },
-      }) as Promise<UpdatedAtOnly[]>,
-    ]);
+  let services: SlugWithUpdatedAt[] = [];
+  let documents: SlugWithUpdatedAt[] = [];
+  let sections: SectionWithUpdatedAt[] = [];
+  let doctors: UpdatedAtOnly[] = [];
+  let testimonials: UpdatedAtOnly[] = [];
+  let faqItems: UpdatedAtOnly[] = [];
+
+  try {
+    [services, documents, sections, doctors, testimonials, faqItems] =
+      await Promise.all([
+        prisma.service.findMany({
+          where: { enabled: true },
+          select: { slug: true, updatedAt: true },
+        }) as Promise<SlugWithUpdatedAt[]>,
+        prisma.siteDocument.findMany({
+          where: { enabled: true, fileId: { not: null } },
+          select: { slug: true, updatedAt: true },
+        }) as Promise<SlugWithUpdatedAt[]>,
+        prisma.section.findMany({
+          where: { enabled: true },
+          select: { type: true, updatedAt: true },
+        }) as Promise<SectionWithUpdatedAt[]>,
+        prisma.doctor.findMany({
+          where: { enabled: true },
+          select: { updatedAt: true },
+        }) as Promise<UpdatedAtOnly[]>,
+        prisma.testimonial.findMany({
+          where: { enabled: true },
+          select: { updatedAt: true },
+        }) as Promise<UpdatedAtOnly[]>,
+        prisma.faqItem.findMany({
+          where: { enabled: true },
+          select: { updatedAt: true },
+        }) as Promise<UpdatedAtOnly[]>,
+      ]);
+  } catch (error) {
+    if (!isPrismaMissingTableError(error)) {
+      throw error;
+    }
+  }
 
   const getLatestDate = (dates: Date[]) =>
     dates.length > 0
