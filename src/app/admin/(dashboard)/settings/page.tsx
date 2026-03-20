@@ -29,6 +29,36 @@ const defaults = {
   openRouterModel: "qwen/qwen3-vl-30b-a3b-thinking",
 };
 
+type SettingsForm = typeof defaults;
+const SETTINGS_KEYS = Object.keys(defaults) as Array<keyof SettingsForm>;
+
+function normalizeSettingsPayload(raw: Record<string, unknown>): SettingsForm {
+  const normalized: SettingsForm = { ...defaults };
+
+  for (const key of SETTINGS_KEYS) {
+    const value = raw[key];
+    if (typeof value === "string") {
+      normalized[key] = value;
+    }
+  }
+
+  normalized.openRouterApiKey = "";
+  return normalized;
+}
+
+async function getApiErrorMessage(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { error?: unknown };
+    if (typeof payload.error === "string" && payload.error.trim().length > 0) {
+      return payload.error;
+    }
+  } catch {
+    // ignore malformed response payload
+  }
+
+  return fallback;
+}
+
 export default function SettingsManager() {
   const [settings, setSettings] = useState(defaults);
   const [openRouterApiKeyConfigured, setOpenRouterApiKeyConfigured] = useState(false);
@@ -40,18 +70,25 @@ export default function SettingsManager() {
     const load = async () => {
       try {
         const response = await fetch("/api/admin/settings");
-        const data = (await response.json()) as Partial<typeof defaults> & {
-          openRouterApiKeyConfigured?: boolean;
-          openRouterApiKey?: string;
-        };
-        const configured = Boolean(data.openRouterApiKeyConfigured);
-        const rest = { ...data };
-        delete rest.openRouterApiKeyConfigured;
-        delete rest.openRouterApiKey;
-        setSettings((current) => ({ ...current, ...rest, openRouterApiKey: "" }));
+
+        if (!response.ok) {
+          const message = await getApiErrorMessage(
+            response,
+            "Не удалось загрузить настройки"
+          );
+          throw new Error(message);
+        }
+
+        const data = (await response.json()) as Record<string, unknown>;
+        const configured =
+          typeof data.openRouterApiKeyConfigured === "boolean"
+            ? data.openRouterApiKeyConfigured
+            : false;
+
+        setSettings(normalizeSettingsPayload(data));
         setOpenRouterApiKeyConfigured(configured);
-      } catch {
-        toast.error("Не удалось загрузить настройки");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Не удалось загрузить настройки");
       } finally {
         setLoading(false);
       }
@@ -69,17 +106,23 @@ export default function SettingsManager() {
     setSaving(true);
 
     try {
+      const payload: Record<string, string | boolean> = {
+        clearOpenRouterApiKey,
+      };
+
+      for (const key of SETTINGS_KEYS) {
+        payload[key] = settings[key];
+      }
+
       const response = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...settings,
-          clearOpenRouterApiKey,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save settings");
+        const message = await getApiErrorMessage(response, "Ошибка при сохранении");
+        throw new Error(message);
       }
 
       const hasNewOpenRouterApiKey = settings.openRouterApiKey.trim().length > 0;
@@ -91,8 +134,8 @@ export default function SettingsManager() {
       setSettings((current) => ({ ...current, openRouterApiKey: "" }));
       setClearOpenRouterApiKey(false);
       toast.success("Настройки сохранены");
-    } catch {
-      toast.error("Ошибка при сохранении");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ошибка при сохранении");
     } finally {
       setSaving(false);
     }

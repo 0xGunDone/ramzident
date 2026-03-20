@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { Prisma } from "@prisma/client";
 import { isApiError } from "@/lib/errors";
 import { createRequestId, getClientIp } from "@/lib/request";
 import { InMemoryRateLimiter } from "@/lib/rate-limit";
@@ -16,6 +15,14 @@ const adminMutationLimiter = new InMemoryRateLimiter({
   windowMs: 60_000,
   max: 120,
 });
+
+function hasErrorCode(error: unknown, code: string): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  return "code" in error && (error as { code?: unknown }).code === code;
+}
 
 function withCommonHeaders(response: NextResponse, requestId: string) {
   response.headers.set("x-request-id", requestId);
@@ -81,10 +88,7 @@ export function withAuth(handler: RouteHandler): RouteHandler {
         );
       }
 
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (hasErrorCode(error, "P2002")) {
         return withCommonHeaders(
           NextResponse.json(
             {

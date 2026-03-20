@@ -157,8 +157,9 @@ Replace:
 - SSL certificate paths if needed
 - keep `client_max_body_size 50m;` for admin media uploads and file replacement
 - set correct absolute `root` path for static runtime media:
-  - `location /uploads/ { root <APP_DIR>/public; try_files $uri =404; }`
+  - `location /uploads/ { root <APP_DIR>/public; try_files $uri @nextjs; }`
   - `location /og/ { root <APP_DIR>/public; try_files $uri =404; }`
+  - make sure named location `@nextjs` exists and proxies to the app upstream
   Example for nested deploy path: `/var/www/product/ramzident/public/uploads/`
 
 Enable site:
@@ -256,7 +257,7 @@ sudo chown -R ramzident:ramzident /var/www/ramzident/public/og
 - verify a newly uploaded `/uploads/...` URL opens immediately without app restart
 - if upload returns `413`, verify nginx has `client_max_body_size 50m;` and app is deployed with `experimental.proxyClientMaxBodySize` in `next.config.ts`
 - verify `https://example.com/og/site.jpg` returns `200` and `content-type: image/jpeg`
-- verify `https://example.com/opengraph-image` returns `200` and `content-type: image/png`
+- verify `https://example.com/opengraph-image` returns `200` and `content-type: image/jpeg`
 - verify `/documents` and service pages open
 - verify `/robots.txt` and `/sitemap.xml`
 - verify `sudo systemctl status ramzident`

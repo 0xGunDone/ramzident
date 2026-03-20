@@ -1,6 +1,5 @@
 import path from "path";
 import { mkdir, unlink, writeFile } from "fs/promises";
-import { Prisma } from "@prisma/client";
 import sharp from "sharp";
 
 const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"]);
@@ -36,6 +35,10 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return typeof error === "object" && error !== null && "code" in error;
 }
 
+function hasErrorCode(error: unknown, code: string): boolean {
+  return isNodeError(error) && error.code === code;
+}
+
 export function getUploadErrorMessage(error: unknown) {
   if (isNodeError(error)) {
     if (error.code === "EACCES" || error.code === "EPERM" || error.code === "EROFS") {
@@ -69,10 +72,7 @@ export function getUploadErrorMessage(error: unknown) {
     return "Не удалось сжать изображение до 200 КБ. Загрузите изображение меньшего разрешения.";
   }
 
-  if (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2002"
-  ) {
+  if (hasErrorCode(error, "P2002")) {
     return "Такой файл уже существует. Повторите загрузку ещё раз.";
   }
 

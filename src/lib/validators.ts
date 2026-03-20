@@ -259,7 +259,7 @@ export const settingsUpdateSchema = z
     openRouterModel: optionalText(120),
     clearOpenRouterApiKey: booleanLike.optional(),
   })
-  .strict();
+  .strip();
 
 export const aiSeoResultSchema = z
   .object({

@@ -47,12 +47,6 @@ const heroScenarios = [
   },
 ];
 
-const bookingSteps = [
-  "Расскажите задачу администратору по телефону.",
-  "Подберём врача и удобное окно для визита.",
-  "Сориентируем по подготовке и дальнейшим шагам.",
-];
-
 export default async function HeroSection() {
   const [section, settings] = await Promise.all([
     getSectionByType("hero"),
@@ -178,41 +172,6 @@ export default async function HeroSection() {
                 unoptimized={isUploadedMediaPath(content.imagePath)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[rgba(16,46,53,0.4)] via-transparent to-transparent" />
-            </div>
-
-            <div className="relative mt-4 rounded-2xl border border-white/30 bg-white/80 p-5 shadow-[0_12px_40px_rgba(16,46,53,0.12)] backdrop-blur-xl sm:mt-5 sm:rounded-[1.6rem] lg:absolute lg:inset-x-8 lg:bottom-8 lg:mt-0">
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[var(--accent)]">
-                    {settings.clinicName}
-                  </p>
-                  <p className="mt-1.5 text-sm leading-6 text-[var(--ink)]">
-                    {settings.address}
-                  </p>
-                  <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-                    Пн-Пт {settings.workHoursWeekdays} | Сб-Вс {settings.workHoursWeekend}
-                  </p>
-                </div>
-                <PhoneLink
-                  phone={settings.phone}
-                  rawPhone={settings.phoneRaw}
-                  label="Звонок"
-                  className="hidden shrink-0 items-center justify-center rounded-xl bg-[var(--ink-strong)] px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[var(--ink)] sm:inline-flex"
-                />
-              </div>
-              <div className="mt-4 grid gap-2">
-                {bookingSteps.map((step, index) => (
-                  <div
-                    key={step}
-                    className="flex items-start gap-3 rounded-2xl border border-white/35 bg-white/55 px-3 py-3 text-sm leading-6 text-[var(--ink)]"
-                  >
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--ink-strong)] text-xs font-semibold text-white">
-                      {index + 1}
-                    </span>
-                    <span>{step}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
