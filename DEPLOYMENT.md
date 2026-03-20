@@ -98,6 +98,12 @@ sudo -u ramzident npx prisma generate
 sudo -u ramzident npm run db:seed
 ```
 
+`npm run db:seed` в production теперь безопасен по умолчанию: он создаёт только отсутствующие стартовые записи и не перетирает уже отредактированный контент. Если вам когда-то понадобится сознательно вернуть существующие записи к seed-значениям, используйте отдельную команду:
+
+```bash
+sudo -u ramzident npm run db:seed:overwrite
+```
+
 If you later add Prisma migrations:
 
 ```bash

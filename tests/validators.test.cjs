@@ -16,6 +16,7 @@ require("tsconfig-paths/register");
 
 const { ApiError } = require("../src/lib/errors.ts");
 const {
+  doctorAiFillInputSchema,
   parsePayload,
   serviceCreateSchema,
   settingsUpdateSchema,
@@ -57,4 +58,35 @@ test("settings schema allows clearOpenRouterApiKey toggle", () => {
 
   assert.equal(payload.clearOpenRouterApiKey, true);
   assert.equal(payload.openRouterApiKey, "");
+});
+
+test("doctor ai fill schema accepts valid payload", () => {
+  const payload = parsePayload(doctorAiFillInputSchema, {
+    name: "Немех Рамзи",
+    speciality: "Стоматолог общей практики, ортодонт",
+    experience: "33 года",
+    bio: "",
+    education: "Многолетний клинический опыт в лечении взрослых и детей.",
+    schedule: "",
+  });
+
+  assert.equal(payload.name, "Немех Рамзи");
+  assert.equal(payload.speciality, "Стоматолог общей практики, ортодонт");
+  assert.equal(payload.education, "Многолетний клинический опыт в лечении взрослых и детей.");
+});
+
+test("doctor ai fill schema rejects missing speciality", () => {
+  assert.throws(
+    () =>
+      parsePayload(doctorAiFillInputSchema, {
+        name: "Немех Рамзи",
+        speciality: "   ",
+      }),
+    (error) => {
+      assert.ok(error instanceof ApiError);
+      assert.equal(error.status, 400);
+      assert.equal(error.code, "VALIDATION_ERROR");
+      return true;
+    }
+  );
 });

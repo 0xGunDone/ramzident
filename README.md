@@ -39,6 +39,12 @@ npx prisma generate
 npm run db:seed
 ```
 
+`npm run db:seed` теперь работает в безопасном режиме: добавляет только отсутствующие стартовые записи и не перезаписывает уже изменённый контент. Для принудительной синхронизации существующих данных с шаблоном есть отдельная команда:
+
+```bash
+npm run db:seed:overwrite
+```
+
 4. Запустить dev-сервер:
 
 ```bash
@@ -52,7 +58,8 @@ npm run dev
 - `npm run start` — запуск production build
 - `npm run lint` — ESLint
 - `npm run test` — unit/smoke tests (Node test runner)
-- `npm run db:seed` — заполнение БД стартовыми данными
+- `npm run db:seed` — безопасное заполнение БД только отсутствующими стартовыми данными
+- `npm run db:seed:overwrite` — принудительно синхронизировать существующие записи с seed-данными
 - `npm run og:generate` — регенерация статических OG-изображений
 
 ## Безопасность и API

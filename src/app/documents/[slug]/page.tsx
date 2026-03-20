@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { isUploadedMediaPath } from "@/lib/images";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getDocumentStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
@@ -17,6 +19,13 @@ interface RelatedDocumentLink {
   id: string;
   slug: string;
   title: string;
+}
+
+function getDocumentFileTypeLabel(mimeType: string | null | undefined) {
+  if (!mimeType) return "Файл";
+  if (mimeType === "application/pdf") return "PDF";
+  if (mimeType.startsWith("image/")) return "Изображение";
+  return mimeType;
 }
 
 async function getDocumentBySlug(slug: string) {
@@ -88,6 +97,9 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     notFound();
   }
 
+  const isPdfDocument = document.file.mimeType === "application/pdf";
+  const isImageDocument = document.file.mimeType.startsWith("image/");
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -153,7 +165,11 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
 
               <div className="surface-card rounded-[2rem] px-6 py-6">
                 <p className="text-sm leading-8 text-[var(--muted)]">
-                  Откройте файл в браузере или скачайте его на устройство.
+                  {isPdfDocument
+                    ? "PDF можно открыть в браузере, пролистать на странице ниже или скачать."
+                    : isImageDocument
+                      ? "Изображение можно посмотреть прямо на странице или открыть отдельно в полном размере."
+                      : "Откройте файл в браузере или скачайте его на устройство."}
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
@@ -162,7 +178,11 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
                     rel="noreferrer"
                     className="inline-flex items-center justify-center rounded-full bg-[var(--ink-strong)] px-6 py-3 text-sm font-semibold text-white"
                   >
-                    Открыть документ
+                    {isPdfDocument
+                      ? "Открыть PDF"
+                      : isImageDocument
+                        ? "Открыть изображение"
+                        : "Открыть документ"}
                   </a>
                   <a
                     href={document.file.path}
@@ -173,6 +193,33 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
                   </a>
                 </div>
               </div>
+
+              {isPdfDocument ? (
+                <div className="surface-card overflow-hidden rounded-[2rem] p-3">
+                  <div className="overflow-hidden rounded-[1.6rem] border border-[var(--line)] bg-white">
+                    <iframe
+                      src={document.file.path}
+                      title={`Предпросмотр ${document.title}`}
+                      className="h-[780px] w-full"
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              {isImageDocument ? (
+                <div className="surface-card overflow-hidden rounded-[2rem] p-3">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] border border-[var(--line)] bg-[rgba(247,241,230,0.7)]">
+                    <Image
+                      src={document.file.path}
+                      alt={document.file.altText || document.title}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                      unoptimized={isUploadedMediaPath(document.file.path)}
+                    />
+                  </div>
+                </div>
+              ) : null}
             </article>
 
             <aside className="space-y-6">
@@ -187,7 +234,12 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
                   </div>
                   <div>
                     <dt className="font-semibold text-[var(--ink)]">Формат файла</dt>
-                    <dd>{document.file.mimeType}</dd>
+                    <dd>
+                      {getDocumentFileTypeLabel(document.file.mimeType)}
+                      <span className="ml-2 text-xs text-[var(--muted)]">
+                        {document.file.mimeType}
+                      </span>
+                    </dd>
                   </div>
                   <div>
                     <dt className="font-semibold text-[var(--ink)]">Обновлён</dt>

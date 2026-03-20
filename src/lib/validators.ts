@@ -129,6 +129,25 @@ export const doctorReorderSchema = z
   })
   .strict();
 
+export const doctorAiFillInputSchema = z
+  .object({
+    name: requiredText(160),
+    speciality: requiredText(160),
+    experience: optionalNullableText(160),
+    bio: optionalNullableText(4_000),
+    education: optionalNullableText(4_000),
+    schedule: optionalNullableText(200),
+  })
+  .strict();
+
+export const doctorAiFillResultSchema = z
+  .object({
+    bio: optionalNullableText(4_000),
+    education: optionalNullableText(4_000),
+    schedule: optionalNullableText(200),
+  })
+  .strict();
+
 const documentFields = {
   title: requiredText(200),
   slug: optionalText(180),

@@ -6,6 +6,17 @@ import sharp from "sharp";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const SEED_MODE_PRESERVE = "preserve";
+const SEED_MODE_OVERWRITE = "overwrite";
+const seedMode = (process.env.SEED_MODE || SEED_MODE_PRESERVE).trim().toLowerCase();
+
+if (![SEED_MODE_PRESERVE, SEED_MODE_OVERWRITE].includes(seedMode)) {
+  throw new Error(
+    `Unsupported SEED_MODE="${seedMode}". Use "${SEED_MODE_PRESERVE}" or "${SEED_MODE_OVERWRITE}".`
+  );
+}
+
+const shouldOverwriteExisting = seedMode === SEED_MODE_OVERWRITE;
 
 const mediaItems = [
   {
@@ -570,27 +581,72 @@ const getFileMeta = async (publicPath) => {
   };
 };
 
-async function upsertSettings() {
-  const updates = Object.entries(siteSettings).map(([key, value]) =>
-    prisma.siteSettings.upsert({
-      where: { key },
-      update: { value: String(value) },
-      create: { key, value: String(value) },
-    })
-  );
+async function createOrUpdateSeedRecord({
+  delegate,
+  where,
+  createData,
+  updateData,
+}) {
+  const existing = await delegate.findUnique({ where });
 
-  await prisma.$transaction(updates);
+  if (!existing) {
+    await delegate.create({ data: createData });
+    return "created";
+  }
+
+  if (!shouldOverwriteExisting) {
+    return "skipped";
+  }
+
+  await delegate.update({
+    where,
+    data: updateData,
+  });
+  return "updated";
+}
+
+async function replaceOrCreateCollection({
+  delegate,
+  data,
+}) {
+  const count = await delegate.count();
+
+  if (count === 0) {
+    await delegate.createMany({ data });
+    return "created";
+  }
+
+  if (!shouldOverwriteExisting) {
+    return "skipped";
+  }
+
+  await delegate.deleteMany();
+  await delegate.createMany({ data });
+  return "replaced";
+}
+
+async function upsertSettings() {
+  for (const [key, value] of Object.entries(siteSettings)) {
+    await createOrUpdateSeedRecord({
+      delegate: prisma.siteSettings,
+      where: { key },
+      createData: { key, value: String(value) },
+      updateData: { value: String(value) },
+    });
+  }
 }
 
 async function upsertMedia() {
   for (const item of mediaItems) {
     const meta = await getFileMeta(item.path);
 
-    await prisma.media.upsert({
+    await createOrUpdateSeedRecord({
+      delegate: prisma.media,
       where: { path: item.path },
-      update: {
+      createData: {
         filename: item.filename,
         label: item.label,
+        path: item.path,
         width: meta.width,
         height: meta.height,
         sizeBytes: meta.sizeBytes,
@@ -601,10 +657,9 @@ async function upsertMedia() {
         context: item.context,
         usage: item.usage,
       },
-      create: {
+      updateData: {
         filename: item.filename,
         label: item.label,
-        path: item.path,
         width: meta.width,
         height: meta.height,
         sizeBytes: meta.sizeBytes,
@@ -621,16 +676,17 @@ async function upsertMedia() {
 
 async function upsertSections() {
   for (const section of sections) {
-    await prisma.section.upsert({
+    await createOrUpdateSeedRecord({
+      delegate: prisma.section,
       where: { type: section.type },
-      update: {
+      createData: {
+        type: section.type,
         title: section.title,
         order: section.order,
         enabled: section.enabled,
         content: JSON.stringify(section.content),
       },
-      create: {
-        type: section.type,
+      updateData: {
         title: section.title,
         order: section.order,
         enabled: section.enabled,
@@ -645,10 +701,11 @@ async function upsertAdminUser() {
   const password = process.env.ADMIN_PASSWORD || "ramziDent001!";
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await prisma.adminUser.upsert({
+  await createOrUpdateSeedRecord({
+    delegate: prisma.adminUser,
     where: { email },
-    update: { password: passwordHash },
-    create: { email, password: passwordHash },
+    createData: { email, password: passwordHash },
+    updateData: { password: passwordHash },
   });
 }
 
@@ -662,10 +719,12 @@ async function upsertServices() {
   );
 
   for (const service of services) {
-    await prisma.service.upsert({
+    await createOrUpdateSeedRecord({
+      delegate: prisma.service,
       where: { slug: service.slug },
-      update: {
+      createData: {
         title: service.title,
+        slug: service.slug,
         summary: service.summary,
         description: service.description,
         body: service.body,
@@ -680,9 +739,8 @@ async function upsertServices() {
         enabled: service.enabled,
         sectionId: serviceSection?.id || null,
       },
-      create: {
+      updateData: {
         title: service.title,
-        slug: service.slug,
         summary: service.summary,
         description: service.description,
         body: service.body,
@@ -707,10 +765,12 @@ async function upsertDoctors() {
   );
 
   for (const doctor of doctors) {
-    await prisma.doctor.upsert({
+    await createOrUpdateSeedRecord({
+      delegate: prisma.doctor,
       where: { slug: doctor.slug },
-      update: {
+      createData: {
         name: doctor.name,
+        slug: doctor.slug,
         speciality: doctor.speciality,
         experience: doctor.experience,
         bio: doctor.bio,
@@ -720,9 +780,8 @@ async function upsertDoctors() {
         order: doctor.order,
         enabled: doctor.enabled,
       },
-      create: {
+      updateData: {
         name: doctor.name,
-        slug: doctor.slug,
         speciality: doctor.speciality,
         experience: doctor.experience,
         bio: doctor.bio,
@@ -737,13 +796,17 @@ async function upsertDoctors() {
 }
 
 async function replaceTestimonials() {
-  await prisma.testimonial.deleteMany();
-  await prisma.testimonial.createMany({ data: testimonials });
+  await replaceOrCreateCollection({
+    delegate: prisma.testimonial,
+    data: testimonials,
+  });
 }
 
 async function replaceFaqs() {
-  await prisma.faqItem.deleteMany();
-  await prisma.faqItem.createMany({ data: faqs });
+  await replaceOrCreateCollection({
+    delegate: prisma.faqItem,
+    data: faqs,
+  });
 }
 
 async function upsertDocuments() {
@@ -752,19 +815,20 @@ async function upsertDocuments() {
   );
 
   for (const document of documents) {
-    await prisma.siteDocument.upsert({
+    await createOrUpdateSeedRecord({
+      delegate: prisma.siteDocument,
       where: { slug: document.slug },
-      update: {
+      createData: {
         title: document.title,
+        slug: document.slug,
         description: document.description,
         type: document.type,
         fileId: document.filePath ? mediaByPath.get(document.filePath) || null : null,
         order: document.order,
         enabled: document.enabled,
       },
-      create: {
+      updateData: {
         title: document.title,
-        slug: document.slug,
         description: document.description,
         type: document.type,
         fileId: document.filePath ? mediaByPath.get(document.filePath) || null : null,
@@ -776,6 +840,9 @@ async function upsertDocuments() {
 }
 
 async function main() {
+  console.log(
+    `[seed] Running in ${seedMode} mode${shouldOverwriteExisting ? " (existing content may be updated)" : " (existing content will be preserved)"}`
+  );
   await upsertAdminUser();
   await upsertSettings();
   await upsertMedia();
@@ -785,6 +852,16 @@ async function main() {
   await replaceTestimonials();
   await replaceFaqs();
   await upsertDocuments();
+  console.log(
+    shouldOverwriteExisting
+      ? "[seed] Done. Existing records were synchronized from seed defaults."
+      : "[seed] Done. Only missing seed records were created; existing content was left untouched."
+  );
+  if (!shouldOverwriteExisting) {
+    console.log(
+      '[seed] Use "npm run db:seed:overwrite" when you intentionally want to sync existing records back to the seed defaults.'
+    );
+  }
 }
 
 main()

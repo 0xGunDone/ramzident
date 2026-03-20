@@ -16,6 +16,25 @@ const initialForm = {
   enabled: true,
 };
 
+interface DoctorAiDraft {
+  bio?: string | null;
+  education?: string | null;
+  schedule?: string | null;
+}
+
+async function getApiErrorMessage(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { error?: unknown };
+    if (typeof payload.error === "string" && payload.error.trim().length > 0) {
+      return payload.error;
+    }
+  } catch {
+    // ignore malformed response payload
+  }
+
+  return fallback;
+}
+
 export default function DoctorsManager() {
   const [doctors, setDoctors] = useState<DoctorItem[]>([]);
   const [mediaList, setMediaList] = useState<MediaOption[]>([]);
@@ -23,6 +42,7 @@ export default function DoctorsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialForm);
   const [search, setSearch] = useState<string>("");
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -80,6 +100,53 @@ export default function DoctorsManager() {
   const startCreate = () => {
     setEditingId("new");
     setFormData(initialForm);
+  };
+
+  const generateAiDraft = async () => {
+    if (!formData.name.trim() || !formData.speciality.trim()) {
+      toast.error("Для AI заполнения укажите ФИО и специальность врача");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const response = await fetch("/api/admin/doctors/ai-fill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          speciality: formData.speciality,
+          experience: formData.experience || null,
+          bio: formData.bio || null,
+          education: formData.education || null,
+          schedule: formData.schedule || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const message = await getApiErrorMessage(
+          response,
+          "Не удалось выполнить AI заполнение"
+        );
+        throw new Error(message);
+      }
+
+      const draft = (await response.json()) as DoctorAiDraft;
+      setFormData((current) => ({
+        ...current,
+        bio: draft.bio ?? current.bio,
+        education: draft.education ?? current.education,
+        schedule: draft.schedule ?? current.schedule,
+      }));
+      toast.success("AI подготовил черновик для врача");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const submitForm = async (event: React.FormEvent) => {
@@ -264,6 +331,32 @@ export default function DoctorsManager() {
                 откройте запись в разделе «Медиа» и нажмите «Заменить файл».
               </p>
             </label>
+            <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 px-5 py-4 md:col-span-2">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-900">
+                    AI заполнение карточки врача
+                  </p>
+                  <p className="text-xs leading-6 text-slate-500">
+                    Черновик заполняет биографию и может аккуратно переработать
+                    уже введённые сведения об образовании и графике. Факты,
+                    которых нет во входных полях, AI не должен выдумывать.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={generateAiDraft}
+                  disabled={
+                    aiGenerating ||
+                    !formData.name.trim() ||
+                    !formData.speciality.trim()
+                  }
+                  className="rounded-full border border-violet-200 bg-violet-50 px-5 py-3 text-sm font-semibold text-violet-700 disabled:opacity-50"
+                >
+                  {aiGenerating ? "Генерация..." : "AI заполнить"}
+                </button>
+              </div>
+            </div>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Краткая биография</span>
               <textarea

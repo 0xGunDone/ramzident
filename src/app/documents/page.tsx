@@ -15,7 +15,14 @@ interface DocumentsListItem {
   slug: string;
   description: string | null;
   type: string;
-  file: { path: string } | null;
+  file: { path: string; mimeType: string } | null;
+}
+
+function getDocumentActionLabel(mimeType: string | null | undefined) {
+  if (!mimeType) return "Открыть файл";
+  if (mimeType === "application/pdf") return "Открыть PDF";
+  if (mimeType.startsWith("image/")) return "Открыть изображение";
+  return "Открыть файл";
 }
 
 export const dynamic = "force-dynamic";
@@ -51,6 +58,7 @@ export default async function DocumentsPage() {
         file: {
           select: {
             path: true,
+            mimeType: true,
           },
         },
       },
@@ -106,7 +114,7 @@ export default async function DocumentsPage() {
                         rel="noreferrer"
                         className="inline-flex items-center justify-center rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm font-semibold text-white"
                       >
-                        Открыть файл
+                        {getDocumentActionLabel(document.file.mimeType)}
                       </a>
                     ) : null}
                   </div>

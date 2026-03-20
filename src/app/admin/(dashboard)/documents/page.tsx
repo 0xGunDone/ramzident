@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { DocumentItem, MediaOption } from "@/types";
+import { isUploadedMediaPath } from "@/lib/images";
 
 const initialForm = {
   title: "",
@@ -12,6 +14,18 @@ const initialForm = {
   fileId: "",
   enabled: false,
 };
+
+function isDocumentMediaOption(file: MediaOption) {
+  const mimeType = file.mimeType || "";
+  return mimeType === "application/pdf" || mimeType.startsWith("image/");
+}
+
+function getDocumentFileLabel(mimeType: string | undefined) {
+  if (!mimeType) return "Файл";
+  if (mimeType === "application/pdf") return "PDF";
+  if (mimeType.startsWith("image/")) return "Изображение";
+  return mimeType;
+}
 
 export default function DocumentsManager() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -38,7 +52,7 @@ export default function DocumentsManager() {
         const mediaData = await mediaResponse.json();
 
         setDocuments(documentsData);
-        setFiles(mediaData.filter((item: MediaOption) => !(item.mimeType || "").startsWith("image/")));
+        setFiles(mediaData.filter((item: MediaOption) => isDocumentMediaOption(item)));
       } catch (error) {
         console.error(error);
       } finally {
@@ -54,6 +68,8 @@ export default function DocumentsManager() {
     const data = await response.json();
     setDocuments(data);
   };
+
+  const selectedFile = files.find((file) => file.id === formData.fileId) || null;
 
   const resetForm = () => {
     setEditingId(null);
@@ -149,7 +165,7 @@ export default function DocumentsManager() {
           <h1 className="text-3xl font-semibold text-slate-950">Документы</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
             Раздел под политику, оферту, лицензии и другие обязательные файлы.
-            Документы публикуются только после назначения загруженного файла.
+            Для документа можно назначить PDF или изображение из медиатеки.
           </p>
         </div>
         <button
@@ -220,10 +236,14 @@ export default function DocumentsManager() {
                 <option value="">Файл не назначен</option>
                 {files.map((file) => (
                   <option key={file.id} value={file.id}>
-                    {file.label || file.path}
+                    [{getDocumentFileLabel(file.mimeType)}] {file.label || file.path}
                   </option>
                 ))}
               </select>
+              <p className="text-xs leading-6 text-slate-500">
+                Сначала загрузите PDF или изображение в разделе «Медиа», затем
+                привяжите его к документу здесь.
+              </p>
             </label>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Описание</span>
@@ -238,6 +258,41 @@ export default function DocumentsManager() {
                 className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3"
               />
             </label>
+            {selectedFile ? (
+              <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 px-5 py-4 md:col-span-2">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Назначенный файл: {getDocumentFileLabel(selectedFile.mimeType)}
+                  </p>
+                  <p className="text-xs leading-6 text-slate-500">
+                    {selectedFile.label || selectedFile.path}
+                  </p>
+                </div>
+                {(selectedFile.mimeType || "").startsWith("image/") ? (
+                  <div className="mt-4 overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white">
+                    <div className="relative aspect-[16/10] w-full">
+                      <Image
+                        src={selectedFile.path}
+                        alt={selectedFile.label || "Изображение документа"}
+                        fill
+                        unoptimized={isUploadedMediaPath(selectedFile.path)}
+                        sizes="(max-width: 768px) 100vw, 60vw"
+                        className="object-contain bg-slate-100"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <a
+                    href={selectedFile.path}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700"
+                  >
+                    Открыть PDF
+                  </a>
+                )}
+              </div>
+            ) : null}
           </div>
 
           <label className="mt-5 flex items-center gap-3 text-sm font-medium text-slate-700">

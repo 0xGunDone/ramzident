@@ -11,6 +11,7 @@
     "test": "node --test tests/*.test.cjs",
     "ci": "npm run lint && npm run test && npm run build",
     "db:seed": "node prisma/seed.mjs",
+    "db:seed:overwrite": "SEED_MODE=overwrite node prisma/seed.mjs",
     "og:generate": "node scripts/generate-og.cjs"
   },
   "dependencies": {
