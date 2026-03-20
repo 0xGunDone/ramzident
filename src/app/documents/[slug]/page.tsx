@@ -12,6 +12,12 @@ interface DocumentPageProps {
   params: Promise<{ slug: string }>;
 }
 
+interface RelatedDocumentLink {
+  id: string;
+  slug: string;
+  title: string;
+}
+
 async function getDocumentBySlug(slug: string) {
   return prisma.siteDocument.findUnique({
     where: { slug },
@@ -54,11 +60,18 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
   const { slug } = await params;
   const [document, relatedDocuments] = await Promise.all([
     getDocumentBySlug(slug),
-    prisma.siteDocument.findMany({
-      where: { enabled: true, fileId: { not: null }, NOT: { slug } },
-      orderBy: { order: "asc" },
-      take: 3,
-    }),
+    prisma.siteDocument
+      .findMany({
+        where: { enabled: true, fileId: { not: null }, NOT: { slug } },
+        orderBy: { order: "asc" },
+        take: 3,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+        },
+      })
+      .then((rows) => rows as RelatedDocumentLink[]),
   ]);
 
   if (!document || !document.enabled || !document.file) {
