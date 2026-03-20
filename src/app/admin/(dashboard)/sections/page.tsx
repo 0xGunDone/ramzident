@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import type { MediaOption } from "@/types";
 
@@ -106,10 +107,13 @@ function MediaSelectField({
           </p>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
             <div className="relative aspect-[16/9] w-full">
-              <img
+              <Image
                 src={value}
                 alt={selectedOption?.label || "Выбранное изображение"}
-                className="h-full w-full object-cover"
+                fill
+                unoptimized
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
             <div className="px-3 py-2 text-xs text-slate-500">

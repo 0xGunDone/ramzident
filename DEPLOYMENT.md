@@ -73,6 +73,7 @@ DATABASE_URL="file:./dev.db"
 NEXTAUTH_URL="https://example.com"
 SITE_URL="https://example.com"
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
+SETTINGS_ENCRYPTION_KEY="replace-with-a-long-random-secret"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="replace-with-a-strong-password"
 ```

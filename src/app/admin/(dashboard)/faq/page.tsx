@@ -195,7 +195,7 @@ export default function FAQManager() {
       ) : null}
 
       <div className="grid gap-4">
-        {filteredItems.map((item, index) => (
+        {filteredItems.map((item) => (
           <article
             key={item.id}
             className="rounded-[1.8rem] border border-black/5 bg-white px-6 py-6 shadow-sm"

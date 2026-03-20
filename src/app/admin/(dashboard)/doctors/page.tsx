@@ -41,7 +41,7 @@ export default function DoctorsManager() {
             item.mimeType.startsWith("image/")
           )
         );
-      } catch (error) {
+      } catch {
         toast.error("Не удалось загрузить данные");
       } finally {
         setLoading(false);

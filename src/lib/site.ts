@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { env, siteConfig } from "@/lib/env";
+import { getSettingsMap } from "@/lib/settings-store";
 
 export type SiteSettingsMap = Record<string, string>;
 
@@ -15,11 +16,7 @@ const safeParseJson = <T>(value: string | null | undefined, fallback: T): T => {
 };
 
 export const getSiteSettings = cache(async () => {
-  const settings = await prisma.siteSettings.findMany();
-  const dbSettings = settings.reduce<SiteSettingsMap>((acc, item) => {
-    acc[item.key] = item.value;
-    return acc;
-  }, {});
+  const dbSettings = (await getSettingsMap()) as SiteSettingsMap;
 
   return {
     clinicName: dbSettings.clinicName || siteConfig.name,

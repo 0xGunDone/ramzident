@@ -23,7 +23,11 @@ export default function LoginPage() {
         });
 
         if (result?.error) {
-            setError("Неверный email или пароль");
+            setError(
+                result.error === "RATE_LIMITED"
+                    ? "Слишком много попыток входа. Попробуйте снова позже."
+                    : "Неверный email или пароль"
+            );
             setLoading(false);
         } else {
             router.push("/admin/dashboard");

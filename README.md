@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ramzident
 
-## Getting Started
+Сайт стоматологической клиники на Next.js с публичной витриной, CMS-админкой и SEO/OG генерацией.
 
-First, run the development server:
+## Технологии
+
+- Next.js (App Router), React, TypeScript
+- Prisma + SQLite (текущая БД проекта)
+- NextAuth (credentials-based admin auth)
+- Tailwind CSS
+- Sharp (оптимизация изображений и OG)
+
+## Что есть в проекте
+
+- Публичные страницы: главная, услуги, документы, SEO metadata, sitemap/robots
+- Админка `/admin/*`: секции, услуги, врачи, отзывы, FAQ, медиа, настройки
+- Загрузка и сжатие изображений
+- Генерация статических OG изображений
+- AI SEO endpoint для изображений (OpenRouter)
+
+## Локальный запуск
+
+1. Установить зависимости:
+
+```bash
+npm install
+```
+
+2. Подготовить окружение:
+
+```bash
+cp .env.example .env
+```
+
+3. Сгенерировать Prisma client и засеять данные:
+
+```bash
+npx prisma generate
+npm run db:seed
+```
+
+4. Запустить dev-сервер:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Скрипты
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `npm run dev` — локальная разработка
+- `npm run build` — production build
+- `npm run start` — запуск production build
+- `npm run lint` — ESLint
+- `npm run test` — unit/smoke tests (Node test runner)
+- `npm run db:seed` — заполнение БД стартовыми данными
+- `npm run og:generate` — регенерация статических OG-изображений
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Безопасность и API
 
-## Learn More
+- Все admin API routes защищены сессией (`withAuth`)
+- Для mutating admin API включен in-memory rate-limit
+- Для логина включен отдельный rate-limit
+- Ошибки API унифицированы и не возвращают внутренние stack trace
+- `openRouterApiKey` хранится в БД в зашифрованном виде (если задан `SETTINGS_ENCRYPTION_KEY` или `NEXTAUTH_SECRET`)
+- В ответе `/api/admin/settings` ключ OpenRouter не возвращается в открытом виде
 
-To learn more about Next.js, take a look at the following resources:
+## Переменные окружения
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Минимально важные:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `SITE_URL`
+- `NEXTAUTH_SECRET`
+- `SETTINGS_ENCRYPTION_KEY`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
-## Deploy on Vercel
+Полный шаблон: [.env.example](./.env.example)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Тесты и CI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Локально: `npm run test`
+- CI workflow: [/.github/workflows/ci.yml](./.github/workflows/ci.yml)
+  - `npm ci`
+  - `npm run lint`
+  - `npm run test`
+  - `npm run build`
+
+## Деплой
+
+Подробная инструкция для production (nginx + systemd): [DEPLOYMENT.md](./DEPLOYMENT.md)

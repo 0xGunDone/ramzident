@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { withAuth } from "@/lib/api";
+import { doctorCreateSchema, doctorReorderSchema, parseRequestJson } from "@/lib/validators";
 
 export const GET = withAuth(async () => {
   const doctors = await prisma.doctor.findMany({
@@ -13,12 +14,8 @@ export const GET = withAuth(async () => {
 });
 
 export const POST = withAuth(async (request) => {
-  const body = await request.json();
-  const name = String(body.name || "").trim();
-
-  if (!name) {
-    return NextResponse.json({ error: "Name is required" }, { status: 400 });
-  }
+  const body = await parseRequestJson(request, doctorCreateSchema);
+  const name = body.name;
 
   const maxOrder = await prisma.doctor.findFirst({
     orderBy: { order: "desc" },
@@ -30,11 +27,11 @@ export const POST = withAuth(async (request) => {
       name,
       slug: slugify(body.slug || name),
       speciality: body.speciality || "",
-      experience: body.experience || null,
-      bio: body.bio || null,
-      education: body.education || null,
-      schedule: body.schedule || null,
-      photoId: body.photoId || null,
+      experience: body.experience ?? null,
+      bio: body.bio ?? null,
+      education: body.education ?? null,
+      schedule: body.schedule ?? null,
+      photoId: body.photoId ?? null,
       order: maxOrder ? maxOrder.order + 1 : 0,
       enabled: body.enabled ?? true,
     },
@@ -44,12 +41,8 @@ export const POST = withAuth(async (request) => {
 });
 
 export const PUT = withAuth(async (request) => {
-  const body = await request.json();
-  const doctors = body.doctors as { id: string; order: number }[] | undefined;
-
-  if (!Array.isArray(doctors)) {
-    return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
-  }
+  const body = await parseRequestJson(request, doctorReorderSchema);
+  const { doctors } = body;
 
   await prisma.$transaction(
     doctors.map((doctor) =>

@@ -52,7 +52,7 @@ export default function ServicesManager() {
             item.mimeType.startsWith("image/")
           )
         );
-      } catch (error) {
+      } catch {
         toast.error("Не удалось загрузить данные");
       } finally {
         setLoading(false);

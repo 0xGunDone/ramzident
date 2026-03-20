@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
 import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
+import { ApiError } from "@/lib/errors";
 import {
   cleanupStoredFile,
   getUploadErrorMessage,
@@ -54,6 +55,10 @@ export const POST = withAuth(async (request) => {
     return NextResponse.json(media);
   } catch (error) {
     await cleanupStoredFile(storedFilePath);
-    throw new Error(getUploadErrorMessage(error), { cause: error });
+    throw new ApiError(getUploadErrorMessage(error), {
+      status: 500,
+      code: "UPLOAD_FAILED",
+      cause: error,
+    });
   }
 });

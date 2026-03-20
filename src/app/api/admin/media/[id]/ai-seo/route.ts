@@ -1,21 +1,175 @@
 import path from "path";
 import { readFile } from "fs/promises";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
+import { ApiError } from "@/lib/errors";
+import { getSettingValue } from "@/lib/settings-store";
+import { aiSeoResultSchema, parsePayload } from "@/lib/validators";
 
-async function getAiSettings() {
-  const rows = await prisma.siteSettings.findMany({
-    where: { key: { in: ["openRouterApiKey", "openRouterModel"] } },
+const AI_REQUEST_TIMEOUT_MS = 25_000;
+const AI_MAX_RETRIES = 2;
+const AI_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
+interface AiSettings {
+  apiKey: string;
+  model: string;
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
-  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+}
+
+async function getAiSettings(): Promise<AiSettings> {
+  const [apiKeyFromDb, modelFromDb] = await Promise.all([
+    getSettingValue("openRouterApiKey"),
+    getSettingValue("openRouterModel"),
+  ]);
+
   return {
-    apiKey: map.openRouterApiKey || process.env.OPENROUTER_API_KEY || "",
-    model:
-      map.openRouterModel ||
-      process.env.OPENROUTER_MODEL ||
-      "qwen/qwen3-vl-30b-a3b-thinking",
+    apiKey: apiKeyFromDb || process.env.OPENROUTER_API_KEY || "",
+    model: modelFromDb || process.env.OPENROUTER_MODEL || "qwen/qwen3-vl-30b-a3b-thinking",
   };
+}
+
+async function optimizeImageForAi(fileBuffer: Buffer, mimeType: string) {
+  if (mimeType === "image/svg+xml") {
+    if (fileBuffer.byteLength > AI_MAX_IMAGE_BYTES) {
+      throw new ApiError(
+        "Изображение слишком большое для AI анализа. Загрузите файл меньшего размера.",
+        { status: 413, code: "AI_IMAGE_TOO_LARGE" }
+      );
+    }
+
+    return {
+      buffer: fileBuffer,
+      mimeType,
+    };
+  }
+
+  try {
+    const optimized = await sharp(fileBuffer)
+      .rotate()
+      .resize({
+        width: 1_280,
+        withoutEnlargement: true,
+      })
+      .webp({
+        quality: 70,
+      })
+      .toBuffer();
+
+    if (optimized.byteLength > AI_MAX_IMAGE_BYTES) {
+      throw new ApiError(
+        "Изображение слишком большое для AI анализа. Загрузите файл меньшего размера.",
+        { status: 413, code: "AI_IMAGE_TOO_LARGE" }
+      );
+    }
+
+    return {
+      buffer: optimized,
+      mimeType: "image/webp",
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    if (fileBuffer.byteLength > AI_MAX_IMAGE_BYTES) {
+      throw new ApiError(
+        "Изображение слишком большое для AI анализа. Загрузите файл меньшего размера.",
+        { status: 413, code: "AI_IMAGE_TOO_LARGE" }
+      );
+    }
+
+    return {
+      buffer: fileBuffer,
+      mimeType,
+    };
+  }
+}
+
+async function requestOpenRouter(params: {
+  apiKey: string;
+  model: string;
+  content: Array<{ type: string; text?: string; image_url?: { url: string } }>;
+}) {
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt <= AI_MAX_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${params.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: params.model,
+          messages: [
+            {
+              role: "user",
+              content: params.content,
+            },
+          ],
+        }),
+        signal: controller.signal,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      }
+
+      const errorText = await response.text();
+      const shouldRetry = response.status >= 500 || response.status === 429;
+      console.error(
+        `[AI] OpenRouter request failed with ${response.status}:`,
+        errorText
+      );
+
+      if (!shouldRetry || attempt >= AI_MAX_RETRIES) {
+        throw new ApiError("AI API request failed", {
+          status: 502,
+          code: "AI_UPSTREAM_ERROR",
+        });
+      }
+
+      await delay(400 * (attempt + 1));
+    } catch (error) {
+      lastError = error;
+      if (attempt >= AI_MAX_RETRIES) {
+        break;
+      }
+      await delay(400 * (attempt + 1));
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  throw new ApiError("AI API request failed", {
+    status: 502,
+    code: "AI_UPSTREAM_ERROR",
+    cause: lastError,
+  });
+}
+
+function extractJsonString(content: string) {
+  const jsonStart = content.indexOf("{");
+  const jsonEnd = content.lastIndexOf("}");
+  if (jsonStart < 0 || jsonEnd < 0 || jsonEnd < jsonStart) {
+    throw new ApiError("Failed to parse AI output", {
+      status: 502,
+      code: "AI_INVALID_RESPONSE",
+    });
+  }
+  return content.slice(jsonStart, jsonEnd + 1);
 }
 
 export const POST = withAuth(async (_request, context) => {
@@ -24,7 +178,7 @@ export const POST = withAuth(async (_request, context) => {
   if (!ai.apiKey) {
     return NextResponse.json(
       { error: "OPENROUTER_API_KEY не настроен. Укажите ключ в Настройках." },
-      { status: 500 }
+      { status: 400 }
     );
   }
 
@@ -43,9 +197,19 @@ export const POST = withAuth(async (_request, context) => {
   }
 
   const filePath = path.join(process.cwd(), "public", media.path);
-  const fileBuffer = await readFile(filePath);
-  const base64Image = fileBuffer.toString("base64");
-  const dataUrl = `data:${media.mimeType};base64,${base64Image}`;
+  let fileBuffer: Buffer;
+  try {
+    fileBuffer = await readFile(filePath);
+  } catch (error) {
+    throw new ApiError("Media file not found on disk", {
+      status: 404,
+      code: "MEDIA_FILE_NOT_FOUND",
+      cause: error,
+    });
+  }
+  const optimized = await optimizeImageForAi(fileBuffer, media.mimeType);
+  const base64Image = optimized.buffer.toString("base64");
+  const dataUrl = `data:${optimized.mimeType};base64,${base64Image}`;
 
   const contextPrompt = media.context
     ? `Контекст использования изображения: ${media.context}. `
@@ -59,60 +223,53 @@ export const POST = withAuth(async (_request, context) => {
   "seoDescription": "описание для поисковых систем до 160 символов"
 }`;
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${ai.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: ai.model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: `${systemPrompt}\n${contextPrompt}` },
-            { type: "image_url", image_url: { url: dataUrl } },
-          ],
-        },
-      ],
-    }),
+  const aiData = await requestOpenRouter({
+    apiKey: ai.apiKey,
+    model: ai.model,
+    content: [
+      { type: "text", text: `${systemPrompt}\n${contextPrompt}` },
+      { type: "image_url", image_url: { url: dataUrl } },
+    ],
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("OpenRouter API error:", errorText);
-    return NextResponse.json({ error: "AI API request failed" }, { status: 500 });
-  }
-
-  const aiData = await response.json();
   const content = aiData.choices?.[0]?.message?.content;
 
   if (typeof content !== "string") {
-    return NextResponse.json({ error: "Invalid AI response" }, { status: 500 });
+    throw new ApiError("Invalid AI response", {
+      status: 502,
+      code: "AI_INVALID_RESPONSE",
+    });
   }
 
   let parsedJson: {
-    altText?: string;
-    seoTitle?: string;
-    seoDescription?: string;
+    altText?: string | null;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
   };
 
   try {
-    const jsonStart = content.indexOf("{");
-    const jsonEnd = content.lastIndexOf("}") + 1;
-    parsedJson = JSON.parse(content.slice(jsonStart, jsonEnd));
-  } catch {
-    console.error("Failed to parse AI response:", content);
-    return NextResponse.json({ error: "Failed to parse AI output" }, { status: 500 });
+    parsedJson = parsePayload(
+      aiSeoResultSchema,
+      JSON.parse(extractJsonString(content)),
+      "Failed to parse AI output"
+    );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError("Failed to parse AI output", {
+      status: 502,
+      code: "AI_INVALID_RESPONSE",
+      cause: error,
+    });
   }
 
   const updatedMedia = await prisma.media.update({
     where: { id },
     data: {
-      altText: parsedJson.altText || null,
-      seoTitle: parsedJson.seoTitle || null,
-      seoDescription: parsedJson.seoDescription || null,
+      altText: parsedJson.altText ?? null,
+      seoTitle: parsedJson.seoTitle ?? null,
+      seoDescription: parsedJson.seoDescription ?? null,
     },
   });
 

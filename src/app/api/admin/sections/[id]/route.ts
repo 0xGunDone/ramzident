@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
+import { parseRequestJson, sectionUpdateSchema } from "@/lib/validators";
 
 export const GET = withAuth(async (_request, context) => {
   const { id } = await context.params;
@@ -17,14 +18,14 @@ export const GET = withAuth(async (_request, context) => {
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
-  const body = await request.json();
+  const body = await parseRequestJson(request, sectionUpdateSchema);
 
   const updated = await prisma.section.update({
     where: { id },
     data: {
-      ...(body.title !== undefined ? { title: body.title || null } : {}),
+      ...(body.title !== undefined ? { title: body.title ?? null } : {}),
       ...(body.enabled !== undefined ? { enabled: Boolean(body.enabled) } : {}),
-      ...(body.content !== undefined ? { content: body.content || null } : {}),
+      ...(body.content !== undefined ? { content: body.content ?? null } : {}),
     },
   });
 

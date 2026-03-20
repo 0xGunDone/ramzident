@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
+import { parseRequestJson, sectionReorderSchema } from "@/lib/validators";
 
 const defaultSections = [
   { type: "hero", title: "Главный экран", order: 0 },
@@ -31,14 +32,8 @@ export const GET = withAuth(async () => {
 });
 
 export const PUT = withAuth(async (request) => {
-  const body = await request.json();
-  const sections = body.sections as
-    | { id: string; order: number; enabled?: boolean }[]
-    | undefined;
-
-  if (!Array.isArray(sections)) {
-    return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
-  }
+  const body = await parseRequestJson(request, sectionReorderSchema);
+  const { sections } = body;
 
   await prisma.$transaction(
     sections.map((section) =>

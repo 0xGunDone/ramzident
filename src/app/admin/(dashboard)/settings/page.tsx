@@ -31,6 +31,8 @@ const defaults = {
 
 export default function SettingsManager() {
   const [settings, setSettings] = useState(defaults);
+  const [openRouterApiKeyConfigured, setOpenRouterApiKeyConfigured] = useState(false);
+  const [clearOpenRouterApiKey, setClearOpenRouterApiKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -38,8 +40,16 @@ export default function SettingsManager() {
     const load = async () => {
       try {
         const response = await fetch("/api/admin/settings");
-        const data = await response.json();
-        setSettings((current) => ({ ...current, ...data }));
+        const data = (await response.json()) as Partial<typeof defaults> & {
+          openRouterApiKeyConfigured?: boolean;
+          openRouterApiKey?: string;
+        };
+        const configured = Boolean(data.openRouterApiKeyConfigured);
+        const rest = { ...data };
+        delete rest.openRouterApiKeyConfigured;
+        delete rest.openRouterApiKey;
+        setSettings((current) => ({ ...current, ...rest, openRouterApiKey: "" }));
+        setOpenRouterApiKeyConfigured(configured);
       } catch {
         toast.error("Не удалось загрузить настройки");
       } finally {
@@ -59,20 +69,27 @@ export default function SettingsManager() {
     setSaving(true);
 
     try {
-      const { siteUrl: _siteUrl, ...payload } = settings as typeof defaults & {
-        siteUrl?: string;
-      };
-
       const response = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...settings,
+          clearOpenRouterApiKey,
+        }),
       });
 
       if (!response.ok) {
         throw new Error("Failed to save settings");
       }
 
+      const hasNewOpenRouterApiKey = settings.openRouterApiKey.trim().length > 0;
+      if (clearOpenRouterApiKey) {
+        setOpenRouterApiKeyConfigured(false);
+      } else if (hasNewOpenRouterApiKey) {
+        setOpenRouterApiKeyConfigured(true);
+      }
+      setSettings((current) => ({ ...current, openRouterApiKey: "" }));
+      setClearOpenRouterApiKey(false);
       toast.success("Настройки сохранены");
     } catch {
       toast.error("Ошибка при сохранении");
@@ -346,6 +363,19 @@ export default function SettingsManager() {
                 placeholder="sk-or-v1-..."
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-mono text-xs"
               />
+              <p className="text-xs leading-6 text-slate-500">
+                {openRouterApiKeyConfigured
+                  ? "Ключ уже сохранён в системе. Оставьте поле пустым, чтобы не менять его."
+                  : "Ключ пока не настроен."}
+              </p>
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={clearOpenRouterApiKey}
+                  onChange={(event) => setClearOpenRouterApiKey(event.target.checked)}
+                />
+                Очистить текущий ключ при сохранении
+              </label>
             </label>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Модель OpenRouter</span>

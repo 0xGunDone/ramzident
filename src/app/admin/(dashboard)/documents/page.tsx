@@ -270,7 +270,7 @@ export default function DocumentsManager() {
       ) : null}
 
       <div className="grid gap-4">
-        {filteredDocuments.map((document, index) => (
+        {filteredDocuments.map((document) => (
           <article
             key={document.id}
             className="rounded-[1.8rem] border border-black/5 bg-white px-6 py-6 shadow-sm"

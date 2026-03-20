@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
+import { ApiError } from "@/lib/errors";
 import {
   cleanupStoredFile,
   getUploadErrorMessage,
@@ -8,6 +9,7 @@ import {
   storeUploadedFile,
 } from "@/lib/media-storage";
 import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
+import { mediaMetadataUpdateSchema, parseRequestJson } from "@/lib/validators";
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
@@ -53,22 +55,26 @@ export const PUT = withAuth(async (request, context) => {
       return NextResponse.json(updated);
     } catch (error) {
       await cleanupStoredFile(storedFilePath);
-      throw new Error(getUploadErrorMessage(error), { cause: error });
+      throw new ApiError(getUploadErrorMessage(error), {
+        status: 500,
+        code: "UPLOAD_REPLACE_FAILED",
+        cause: error,
+      });
     }
   }
 
-  const body = await request.json();
+  const body = await parseRequestJson(request, mediaMetadataUpdateSchema);
 
   const updated = await prisma.media.update({
     where: { id },
     data: {
-      ...(body.label !== undefined ? { label: body.label || null } : {}),
-      ...(body.altText !== undefined ? { altText: body.altText || null } : {}),
-      ...(body.seoTitle !== undefined ? { seoTitle: body.seoTitle || null } : {}),
-      ...(body.seoDescription !== undefined ? { seoDescription: body.seoDescription || null } : {}),
-      ...(body.context !== undefined ? { context: body.context || null } : {}),
-      ...(body.usage !== undefined ? { usage: body.usage || null } : {}),
-      ...(body.usedBy !== undefined ? { usedBy: body.usedBy || null } : {}),
+      ...(body.label !== undefined ? { label: body.label ?? null } : {}),
+      ...(body.altText !== undefined ? { altText: body.altText ?? null } : {}),
+      ...(body.seoTitle !== undefined ? { seoTitle: body.seoTitle ?? null } : {}),
+      ...(body.seoDescription !== undefined ? { seoDescription: body.seoDescription ?? null } : {}),
+      ...(body.context !== undefined ? { context: body.context ?? null } : {}),
+      ...(body.usage !== undefined ? { usage: body.usage ?? null } : {}),
+      ...(body.usedBy !== undefined ? { usedBy: body.usedBy ?? null } : {}),
     },
   });
 
