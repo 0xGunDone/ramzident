@@ -8,6 +8,7 @@ import {
 } from "@/lib/og-static";
 import { parseRequestJson, serviceUpdateSchema } from "@/lib/validators";
 import { enqueueOgJob } from "@/lib/og-jobs";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
@@ -42,6 +43,7 @@ export const PUT = withAuth(async (request, context) => {
     await syncServiceStaticOgAssets(updated, existing?.slug);
   });
 
+  revalidatePublicSite();
   return NextResponse.json(updated);
 });
 
@@ -60,5 +62,6 @@ export const DELETE = withAuth(async (_request, context) => {
     });
   }
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

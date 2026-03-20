@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
 import { faqUpdateSchema, parseRequestJson } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
@@ -17,6 +18,7 @@ export const PUT = withAuth(async (request, context) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(updated);
 });
 
@@ -25,5 +27,6 @@ export const DELETE = withAuth(async (_request, context) => {
 
   await prisma.faqItem.delete({ where: { id } });
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { withAuth } from "@/lib/api";
 import { doctorCreateSchema, doctorReorderSchema, parseRequestJson } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const doctors = await prisma.doctor.findMany({
@@ -37,6 +38,7 @@ export const POST = withAuth(async (request) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(doctor);
 });
 
@@ -53,5 +55,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

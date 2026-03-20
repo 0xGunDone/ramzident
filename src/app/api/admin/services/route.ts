@@ -5,6 +5,7 @@ import { withAuth } from "@/lib/api";
 import { syncServiceStaticOgAssets } from "@/lib/og-static";
 import { parseRequestJson, serviceCreateSchema, serviceReorderSchema } from "@/lib/validators";
 import { enqueueOgJob } from "@/lib/og-jobs";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const services = await prisma.service.findMany({
@@ -47,6 +48,7 @@ export const POST = withAuth(async (request) => {
     await syncServiceStaticOgAssets(service);
   });
 
+  revalidatePublicSite();
   return NextResponse.json(service);
 });
 
@@ -63,5 +65,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

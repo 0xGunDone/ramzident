@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
 import { faqCreateSchema, faqReorderSchema, parseRequestJson } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const items = await prisma.faqItem.findMany({
@@ -27,6 +28,7 @@ export const POST = withAuth(async (request) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(item);
 });
 
@@ -43,5 +45,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

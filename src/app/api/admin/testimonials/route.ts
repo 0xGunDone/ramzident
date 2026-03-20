@@ -6,6 +6,7 @@ import {
   testimonialCreateSchema,
   testimonialReorderSchema,
 } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const testimonials = await prisma.testimonial.findMany({
@@ -34,6 +35,7 @@ export const POST = withAuth(async (request) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(testimonial);
 });
 
@@ -50,5 +52,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

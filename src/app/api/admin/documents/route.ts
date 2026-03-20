@@ -9,6 +9,7 @@ import {
   parseRequestJson,
 } from "@/lib/validators";
 import { enqueueOgJob } from "@/lib/og-jobs";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const documents = await prisma.siteDocument.findMany({
@@ -44,6 +45,7 @@ export const POST = withAuth(async (request) => {
     await syncDocumentStaticOgAssets(document);
   });
 
+  revalidatePublicSite();
   return NextResponse.json(document);
 });
 
@@ -60,5 +62,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

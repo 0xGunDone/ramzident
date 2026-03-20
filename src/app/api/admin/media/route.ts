@@ -8,6 +8,7 @@ import {
   getUploadErrorMessage,
   storeUploadedFile,
 } from "@/lib/media-storage";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async () => {
   const media = await prisma.media.findMany({
@@ -52,6 +53,7 @@ export const POST = withAuth(async (request) => {
       },
     });
 
+    revalidatePublicSite();
     return NextResponse.json(media);
   } catch (error) {
     await cleanupStoredFile(storedFilePath);

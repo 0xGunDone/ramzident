@@ -12,6 +12,8 @@ import DocumentsSection from "@/components/sections/DocumentsSection";
 import ContactsSection from "@/components/sections/ContactsSection";
 import { getSections } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 type SectionRenderer = () => Promise<React.ReactNode>;
 type HomeSection = { id: string; type: string };
 type RenderedSection = { id: string; node: React.ReactNode };

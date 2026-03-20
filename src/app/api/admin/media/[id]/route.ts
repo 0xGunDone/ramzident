@@ -10,6 +10,7 @@ import {
 } from "@/lib/media-storage";
 import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_ERROR } from "@/types";
 import { mediaMetadataUpdateSchema, parseRequestJson } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const PUT = withAuth(async (request, context) => {
   const { id } = await context.params;
@@ -52,6 +53,7 @@ export const PUT = withAuth(async (request, context) => {
       });
 
       await removePublicFile(media.path);
+      revalidatePublicSite();
       return NextResponse.json(updated);
     } catch (error) {
       await cleanupStoredFile(storedFilePath);
@@ -78,6 +80,7 @@ export const PUT = withAuth(async (request, context) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(updated);
 });
 
@@ -92,5 +95,6 @@ export const DELETE = withAuth(async (_request, context) => {
   await prisma.media.delete({ where: { id } });
   await removePublicFile(media.path);
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

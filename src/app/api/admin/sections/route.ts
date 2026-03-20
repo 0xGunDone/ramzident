@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
 import { parseRequestJson, sectionReorderSchema } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 const defaultSections = [
   { type: "hero", title: "Главный экран", order: 0 },
@@ -49,5 +50,6 @@ export const PUT = withAuth(async (request) => {
     )
   );
 
+  revalidatePublicSite();
   return NextResponse.json({ success: true });
 });

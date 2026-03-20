@@ -305,13 +305,13 @@ async function getSiteSettingsMap() {
   const items = (await prisma.siteSettings.findMany({
     select: { key: true, value: true },
   })) as SiteSettingItem[];
-  return items.reduce<SiteSettingsMap>(
-    (acc: SiteSettingsMap, item: SiteSettingItem) => {
-      acc[item.key] = item.value;
-      return acc;
-    },
-    {}
-  );
+
+  const map: SiteSettingsMap = {};
+  for (const item of items) {
+    map[item.key] = item.value;
+  }
+
+  return map;
 }
 
 async function getResolvedSiteSettings(): Promise<ResolvedSiteSettings> {

@@ -7,6 +7,7 @@ import { withAuth } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
 import { getSettingValue } from "@/lib/settings-store";
 import { aiSeoResultSchema, parsePayload } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 const AI_REQUEST_TIMEOUT_MS = 25_000;
 const AI_MAX_RETRIES = 2;
@@ -15,6 +16,7 @@ const AI_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 interface AiSettings {
   apiKey: string;
   model: string;
+  hasEncryptedDbKeyButUnreadable: boolean;
 }
 
 function delay(ms: number) {
@@ -24,14 +26,25 @@ function delay(ms: number) {
 }
 
 async function getAiSettings(): Promise<AiSettings> {
-  const [apiKeyFromDb, modelFromDb] = await Promise.all([
+  const [apiKeyFromDb, modelFromDb, rawApiKeyRow] = await Promise.all([
     getSettingValue("openRouterApiKey"),
     getSettingValue("openRouterModel"),
+    prisma.siteSettings.findUnique({
+      where: { key: "openRouterApiKey" },
+      select: { value: true },
+    }),
   ]);
 
+  const apiKey = (apiKeyFromDb || process.env.OPENROUTER_API_KEY || "").trim();
+  const hasEncryptedDbKeyButUnreadable =
+    !apiKey &&
+    typeof rawApiKeyRow?.value === "string" &&
+    rawApiKeyRow.value.startsWith("enc:v1:");
+
   return {
-    apiKey: apiKeyFromDb || process.env.OPENROUTER_API_KEY || "",
+    apiKey,
     model: modelFromDb || process.env.OPENROUTER_MODEL || "qwen/qwen3-vl-30b-a3b-thinking",
+    hasEncryptedDbKeyButUnreadable,
   };
 }
 
@@ -176,8 +189,11 @@ export const POST = withAuth(async (_request, context) => {
   const ai = await getAiSettings();
 
   if (!ai.apiKey) {
+    const error = ai.hasEncryptedDbKeyButUnreadable
+      ? "Ключ OpenRouter найден в БД, но не может быть расшифрован. Проверьте одинаковые SETTINGS_ENCRYPTION_KEY/NEXTAUTH_SECRET на сервере и сохраните ключ повторно в Настройках."
+      : "OPENROUTER_API_KEY не настроен. Укажите ключ в Настройках.";
     return NextResponse.json(
-      { error: "OPENROUTER_API_KEY не настроен. Укажите ключ в Настройках." },
+      { error },
       { status: 400 }
     );
   }
@@ -273,5 +289,6 @@ export const POST = withAuth(async (_request, context) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(updatedMedia);
 });

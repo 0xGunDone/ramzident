@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api";
 import { parseRequestJson, sectionUpdateSchema } from "@/lib/validators";
+import { revalidatePublicSite } from "@/lib/public-cache";
 
 export const GET = withAuth(async (_request, context) => {
   const { id } = await context.params;
@@ -29,5 +30,6 @@ export const PUT = withAuth(async (request, context) => {
     },
   });
 
+  revalidatePublicSite();
   return NextResponse.json(updated);
 });
