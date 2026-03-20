@@ -70,8 +70,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
           slug: true,
           title: true,
         },
-      })
-      .then((rows) => rows as RelatedDocumentLink[]),
+      }) as Promise<RelatedDocumentLink[]>,
   ]);
 
   if (!document || !document.enabled || !document.file) {
