@@ -6,6 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 import { absoluteUrl } from "@/lib/url";
 
+interface ServiceSchemaItem {
+  title: string;
+  slug: string;
+}
+
 export { generateMetadata } from "@/lib/seo";
 
 function parseHours(range: string): { opens: string; closes: string } {
@@ -100,7 +105,7 @@ export default async function RootLayout({
           ? {
               "@type": "OfferCatalog",
               name: `Услуги ${settings.clinicName}`,
-              itemListElement: services.map((service) => ({
+              itemListElement: services.map((service: ServiceSchemaItem) => ({
                 "@type": "Offer",
                 itemOffered: {
                   "@type": "Service",

@@ -45,7 +45,7 @@ export async function createOgImage({
           background:
             "radial-gradient(circle at top left, rgba(201,176,113,0.22), transparent 34%), radial-gradient(circle at top right, rgba(23,60,67,0.18), transparent 28%), linear-gradient(180deg, #f8f3ea 0%, #f0e6d8 100%)",
           color: "#102e35",
-          fontFamily: '"Noto Sans"',
+          fontFamily: "Noto Sans",
         }}
       >
         <div
@@ -127,7 +127,7 @@ export async function createOgImage({
                       letterSpacing: "0.28em",
                       textTransform: "uppercase",
                       color: "#b99858",
-                      fontFamily: '"Noto Sans"',
+                      fontFamily: "Noto Sans",
                       fontWeight: 700,
                     }}
                   >
@@ -145,7 +145,7 @@ export async function createOgImage({
                     border: "1px solid rgba(185,152,88,0.24)",
                     background: "rgba(255,255,255,0.72)",
                     fontSize: 15,
-                    fontFamily: '"Noto Sans"',
+                    fontFamily: "Noto Sans",
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.16em",
@@ -179,7 +179,7 @@ export async function createOgImage({
                     fontSize: 28,
                     lineHeight: 1.45,
                     color: "#5f767b",
-                    fontFamily: '"Noto Sans"',
+                    fontFamily: "Noto Sans",
                     maxWidth: 860,
                   }}
                 >
@@ -209,7 +209,7 @@ export async function createOgImage({
                     border: "1px solid rgba(16,46,53,0.1)",
                     background: "rgba(255,255,255,0.72)",
                     fontSize: 18,
-                    fontFamily: '"Noto Sans"',
+                    fontFamily: "Noto Sans",
                     color: "#24454d",
                   }}
                 >
@@ -227,7 +227,7 @@ export async function createOgImage({
                 background: "#102e35",
                 color: "white",
                 fontSize: 18,
-                fontFamily: '"Noto Sans"',
+                fontFamily: "Noto Sans",
                 fontWeight: 700,
               }}
             >
