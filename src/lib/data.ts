@@ -55,6 +55,14 @@ export const getEnabledDocuments = cache(async (take?: number) =>
   })
 );
 
+export const hasPublishedDocuments = cache(async () => {
+  const count = await prisma.siteDocument.count({
+    where: { enabled: true, fileId: { not: null } },
+  });
+
+  return count > 0;
+});
+
 export const getGalleryImages = cache(async (take = 6) =>
   prisma.media.findMany({
     where: {

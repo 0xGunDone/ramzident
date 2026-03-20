@@ -9,11 +9,38 @@ import { isUploadedMediaPath } from "@/lib/images";
 import { createSocialMetadata } from "@/lib/metadata";
 import { getServiceStaticOgPathWithVersion } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
+import { getServiceDetailContent } from "@/lib/service-details";
 import { getSiteSettings } from "@/lib/site";
 import { absoluteUrl } from "@/lib/url";
 
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
+}
+
+function DetailCard({
+  title,
+  items,
+}: {
+  title: string;
+  items: string[];
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="surface-card rounded-[1.8rem] px-5 py-5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+        {title}
+      </p>
+      <ul className="mt-4 space-y-3 text-sm leading-7 text-[var(--ink)]">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-3">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export async function generateStaticParams() {
@@ -71,6 +98,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+  const detailContent = getServiceDetailContent(service.slug);
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -138,6 +166,22 @@ export default async function ServicePage({ params }: ServicePageProps) {
       : {}),
   };
 
+  const faqSchema =
+    detailContent && detailContent.faq.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: detailContent.faq.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+          })),
+        }
+      : null;
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -186,6 +230,27 @@ export default async function ServicePage({ params }: ServicePageProps) {
                 ))}
               </div>
 
+              {detailContent ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <DetailCard
+                    title="Когда стоит записаться"
+                    items={detailContent.whenNeeded}
+                  />
+                  <DetailCard
+                    title="Что может входить"
+                    items={detailContent.includes}
+                  />
+                  <DetailCard
+                    title="Как проходит приём"
+                    items={detailContent.visitFlow}
+                  />
+                  <DetailCard
+                    title="Что влияет на стоимость"
+                    items={detailContent.pricingFactors}
+                  />
+                </div>
+              ) : null}
+
               <div className="surface-card rounded-[2rem] px-6 py-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
                   Запись на услугу
@@ -201,6 +266,37 @@ export default async function ServicePage({ params }: ServicePageProps) {
                   className="mt-5 inline-flex items-center justify-center rounded-full bg-[var(--ink-strong)] px-6 py-3 text-sm font-semibold text-white"
                 />
               </div>
+
+              {detailContent && detailContent.faq.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+                      FAQ по услуге
+                    </p>
+                    <h2 className="font-display text-3xl leading-none text-[var(--ink-strong)]">
+                      Частые вопросы перед записью
+                    </h2>
+                  </div>
+                  <div className="grid gap-4">
+                    {detailContent.faq.map((item) => (
+                      <details
+                        key={item.question}
+                        className="surface-card group rounded-[1.8rem] px-5 py-5"
+                      >
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold leading-snug text-[var(--ink-strong)]">
+                          {item.question}
+                          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-white text-lg transition-transform duration-300 group-open:rotate-45">
+                            +
+                          </span>
+                        </summary>
+                        <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
+                          {item.answer}
+                        </p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-6">
@@ -247,7 +343,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([breadcrumbSchema, serviceSchema]),
+          __html: JSON.stringify(
+            faqSchema
+              ? [breadcrumbSchema, serviceSchema, faqSchema]
+              : [breadcrumbSchema, serviceSchema]
+          ),
         }}
       />
     </div>

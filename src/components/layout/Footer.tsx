@@ -1,21 +1,20 @@
 import Link from "next/link";
 import LogoIcon from "@/components/ui/LogoIcon";
 import PhoneLink from "@/components/ui/PhoneLink";
+import { getEnabledDocuments } from "@/lib/data";
 import { getSiteSettings } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
 export default async function Footer() {
-  const settings = await getSiteSettings();
-  const services = await prisma.service.findMany({
-    where: { enabled: true },
-    orderBy: { order: "asc" },
-    take: 4,
-  });
-  const documents = await prisma.siteDocument.findMany({
-    where: { enabled: true, fileId: { not: null } },
-    orderBy: { order: "asc" },
-    take: 3,
-  });
+  const [settings, services, documents] = await Promise.all([
+    getSiteSettings(),
+    prisma.service.findMany({
+      where: { enabled: true },
+      orderBy: { order: "asc" },
+      take: 4,
+    }),
+    getEnabledDocuments(3),
+  ]);
 
   return (
     <footer className="border-t border-white/40 bg-[var(--ink-strong)] text-white">
@@ -56,7 +55,7 @@ export default async function Footer() {
               <Link href="/#services">Услуги</Link>
               <Link href="/#doctors">Врачи</Link>
               <Link href="/#contacts">Контакты</Link>
-              <Link href="/documents">Документы</Link>
+              {documents.length > 0 ? <Link href="/documents">Документы</Link> : null}
             </div>
           </div>
 

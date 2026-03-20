@@ -1,7 +1,9 @@
 import Image from "next/image";
+import PhoneLink from "@/components/ui/PhoneLink";
 import SectionHeading from "@/components/ui/SectionHeading";
+import { getDoctorProfile } from "@/lib/doctor-profiles";
 import { isUploadedMediaPath } from "@/lib/images";
-import { getSectionByType, parseSectionContent } from "@/lib/site";
+import { getSectionByType, getSiteSettings, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
 interface DoctorsSectionContent {
@@ -15,13 +17,14 @@ const fallbackContent: DoctorsSectionContent = {
 const DELAYS = ["", "delay-1", "delay-2", "delay-3", "delay-4", "delay-5", "delay-6"];
 
 export default async function DoctorsSection() {
-  const [section, doctors] = await Promise.all([
+  const [section, doctors, settings] = await Promise.all([
     getSectionByType("doctors"),
     prisma.doctor.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
       include: { photo: true },
     }),
+    getSiteSettings(),
   ]);
 
   if (!section?.enabled) return null;
@@ -37,11 +40,14 @@ export default async function DoctorsSection() {
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {doctors.map((doctor, i) => (
-            <article
-              key={doctor.id}
-              className={`surface-card flex flex-col overflow-hidden rounded-[2rem] animate-in ${DELAYS[Math.min(i + 1, 6)]}`}
-            >
+          {doctors.map((doctor, i) => {
+            const profile = getDoctorProfile(doctor.slug);
+
+            return (
+              <article
+                key={doctor.id}
+                className={`surface-card flex flex-col overflow-hidden rounded-[2rem] animate-in ${DELAYS[Math.min(i + 1, 6)]}`}
+              >
               <div className="relative aspect-[3/4] overflow-hidden">
                 {doctor.photo ? (
                   <Image
@@ -67,24 +73,62 @@ export default async function DoctorsSection() {
               </div>
 
               <div className="flex flex-1 flex-col gap-4 p-6">
+                {profile ? (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.focusAreas.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-[var(--line)] bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 {doctor.bio ? (
-                  <p className="line-clamp-4 text-sm leading-7 text-[var(--muted)]">
+                  <p className="text-sm leading-7 text-[var(--muted)]">
                     {doctor.bio}
                   </p>
                 ) : null}
-                {doctor.education ? (
-                  <div className="rounded-xl border border-[var(--line)] bg-white/80 px-4 py-3.5 text-sm leading-7 text-[var(--ink)]">
-                    {doctor.education}
-                  </div>
-                ) : null}
-                {doctor.schedule ? (
-                  <p className="mt-auto text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent)]">
-                    {doctor.schedule}
-                  </p>
-                ) : null}
+                <div className="grid gap-3">
+                  {profile?.bestFor ? (
+                    <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/80 px-4 py-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+                        Подойдёт, если
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--ink)]">
+                        {profile.bestFor}
+                      </p>
+                    </div>
+                  ) : null}
+                  {(profile?.careStyle || doctor.education) ? (
+                    <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/80 px-4 py-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+                        Формат приёма
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--ink)]">
+                        {profile?.careStyle || doctor.education}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+                <div className="mt-auto flex flex-col gap-3 pt-1">
+                  {doctor.schedule ? (
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent)]">
+                      {doctor.schedule}
+                    </p>
+                  ) : null}
+                  <PhoneLink
+                    phone={settings.phone}
+                    rawPhone={settings.phoneRaw}
+                    label={`Записаться: ${settings.phone}`}
+                    className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--ink-strong)] px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[var(--ink)]"
+                  />
+                </div>
               </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

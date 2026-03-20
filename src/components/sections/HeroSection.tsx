@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import PhoneLink from "@/components/ui/PhoneLink";
 import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, getSiteSettings, parseSectionContent } from "@/lib/site";
@@ -17,16 +18,40 @@ interface HeroContent {
 
 const fallbackContent: HeroContent = {
   eyebrow: "Стоматология на улице Брагина",
-  title: "Спокойное лечение для взрослых и детей",
-  accent: "с понятным сервисом и современным подходом",
+  title: "Стоматология для взрослых и детей",
+  accent: "с понятным маршрутом лечения и записью по телефону",
   description:
-    "Рамзи Дент объединяет терапию, ортодонтию, хирургию, имплантацию и детский приём в одной клинике.",
+    "Рамзи Дент объединяет терапию, детский приём, хирургию, имплантацию, ортодонтию и эстетическую стоматологию в одной клинике.",
   primaryLabel: "Позвонить и записаться",
   secondaryLabel: "Посмотреть услуги",
   imagePath: "/media/hero/clinic-hero.webp",
   trustItems: [],
   badges: [],
 };
+
+const heroScenarios = [
+  {
+    href: "/services/terapiya-i-lechenie-kariesa",
+    title: "Болит зуб",
+    description: "Терапия и лечение кариеса",
+  },
+  {
+    href: "/services/detskaya-stomatologiya",
+    title: "Нужен детский приём",
+    description: "Бережный осмотр и спокойная адаптация",
+  },
+  {
+    href: "/services/implantatsiya-i-protezirovanie",
+    title: "Нужно восстановление зуба",
+    description: "Имплантация и протезирование",
+  },
+];
+
+const bookingSteps = [
+  "Расскажите задачу администратору по телефону.",
+  "Подберём врача и удобное окно для визита.",
+  "Сориентируем по подготовке и дальнейшим шагам.",
+];
 
 export default async function HeroSection() {
   const [section, settings] = await Promise.all([
@@ -83,8 +108,30 @@ export default async function HeroSection() {
             </a>
           </div>
 
+          <p className="animate-fade text-sm leading-6 text-[var(--muted)]">
+            Расскажите по телефону, что беспокоит, и мы подберём врача, формат
+            приёма и удобное время без лишних шагов.
+          </p>
+
+          <div className="grid gap-3 animate-in delay-3 md:grid-cols-3">
+            {heroScenarios.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="surface-card group rounded-[1.6rem] px-4 py-4"
+              >
+                <p className="text-sm font-semibold text-[var(--ink-strong)] transition-colors group-hover:text-[var(--accent)]">
+                  {item.title}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  {item.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+
           {content.badges.length > 0 ? (
-            <div className="flex flex-wrap gap-2.5 animate-in delay-3">
+            <div className="flex flex-wrap gap-2.5 animate-in delay-4">
               {content.badges.map((badge) => (
                 <span
                   key={badge}
@@ -97,7 +144,7 @@ export default async function HeroSection() {
           ) : null}
 
           {content.trustItems.length > 0 ? (
-            <div className="grid gap-3 animate-in delay-4 sm:grid-cols-3">
+            <div className="grid gap-3 animate-in delay-5 sm:grid-cols-3">
               {content.trustItems.map((item) => (
                 <div
                   key={item.label}
@@ -140,7 +187,10 @@ export default async function HeroSection() {
                     {settings.clinicName}
                   </p>
                   <p className="mt-1.5 text-sm leading-6 text-[var(--ink)]">
-                    Тверь, улица Брагина, 7
+                    {settings.address}
+                  </p>
+                  <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+                    Пн-Пт {settings.workHoursWeekdays} | Сб-Вс {settings.workHoursWeekend}
                   </p>
                 </div>
                 <PhoneLink
@@ -149,6 +199,19 @@ export default async function HeroSection() {
                   label="Звонок"
                   className="hidden shrink-0 items-center justify-center rounded-xl bg-[var(--ink-strong)] px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[var(--ink)] sm:inline-flex"
                 />
+              </div>
+              <div className="mt-4 grid gap-2">
+                {bookingSteps.map((step, index) => (
+                  <div
+                    key={step}
+                    className="flex items-start gap-3 rounded-2xl border border-white/35 bg-white/55 px-3 py-3 text-sm leading-6 text-[var(--ink)]"
+                  >
+                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--ink-strong)] text-xs font-semibold text-white">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

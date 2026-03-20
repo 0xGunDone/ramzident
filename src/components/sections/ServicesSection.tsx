@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { isUploadedMediaPath } from "@/lib/images";
+import { getServiceDetailContent } from "@/lib/service-details";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
@@ -54,11 +55,14 @@ export default async function ServicesSection() {
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {services.map((service, i) => (
-            <article
-              key={service.id}
-              className={`surface-card group flex flex-col overflow-hidden rounded-[2rem] animate-in ${DELAYS[Math.min(i + 1, 6)]}`}
-            >
+          {services.map((service, i) => {
+            const detail = getServiceDetailContent(service.slug);
+
+            return (
+              <article
+                key={service.id}
+                className={`surface-card group flex flex-col overflow-hidden rounded-[2rem] animate-in ${DELAYS[Math.min(i + 1, 6)]}`}
+              >
               <div className="relative aspect-[16/10] overflow-hidden">
                 {service.photo ? (
                   <Image
@@ -117,6 +121,22 @@ export default async function ServicesSection() {
                   </div>
                 ) : null}
 
+                {detail ? (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                      Подходит, если
+                    </p>
+                    <ul className="space-y-2 text-sm leading-6 text-[var(--muted)]">
+                      {detail.whenNeeded.slice(0, 2).map((item) => (
+                        <li key={item} className="flex items-start gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                   <Link
                     href={`/services/${service.slug}`}
@@ -141,8 +161,9 @@ export default async function ServicesSection() {
                   </Link>
                 </div>
               </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

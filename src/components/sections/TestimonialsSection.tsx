@@ -4,15 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
 
 interface TestimonialsContent {
-  rating: string;
-  reviewCount: string;
   sourceLabel: string;
   sourceUrl: string;
 }
 
 const fallbackContent: TestimonialsContent = {
-  rating: "4.9",
-  reviewCount: "70+",
   sourceLabel: "Яндекс Карты",
   sourceUrl:
     "https://yandex.ru/maps/org/ramzi_dent/180026503415/?ll=35.894276%2C56.855939&z=14",
@@ -45,11 +41,12 @@ export default async function TestimonialsSection() {
           <div className="surface-card flex flex-col gap-4 rounded-[2rem] p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
-                Рейтинг и отзывы
+                Открытые отзывы
               </p>
               <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
-                На {content.sourceLabel} у клиники {content.reviewCount} отзывов и
-                рейтинг {content.rating}.
+                Отзывы пациентов доступны на {content.sourceLabel}. На сайте мы
+                оставляем только общие темы и впечатления о приёме без хрупких
+                ручных цифр.
               </p>
             </div>
             <Link

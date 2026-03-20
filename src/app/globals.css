@@ -39,6 +39,12 @@ body {
   font-family: var(--font-sans);
 }
 
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
 ::selection {
   background: rgba(185, 152, 88, 0.24);
 }
@@ -72,6 +78,24 @@ body {
   .section-space {
     padding-bottom: 5.5rem;
     padding-top: 5.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-in,
+  .animate-fade,
+  .animate-scale,
+  details[open] > p {
+    animation: none !important;
+  }
+
+  .surface-card,
+  .surface-card:hover {
+    transition: none;
   }
 }
 

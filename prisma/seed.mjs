@@ -155,7 +155,7 @@ const sections = [
     content: {
       eyebrow: "Стоматология на улице Брагина",
       title: "Стоматология для взрослых и детей",
-      accent: "с понятным лечением и внимательным сервисом",
+      accent: "с понятным маршрутом лечения и записью по телефону",
       description:
         "Стоматологическая клиника «Рамзи Дент» в Твери: терапия, детский приём, хирургия, имплантация, ортодонтия и эстетическая стоматология в одном месте.",
       primaryLabel: "Позвонить и записаться",
@@ -163,7 +163,7 @@ const sections = [
       imagePath: "/media/hero/clinic-hero.webp",
       trustItems: [
         { value: "6", label: "ключевых направлений лечения" },
-        { value: "Пн-Вс", label: "приём по графику клиники" },
+        { value: "1 звонок", label: "для записи и подбора врача" },
         { value: "33 года", label: "клинический стаж врача" },
       ],
       badges: [
@@ -230,8 +230,6 @@ const sections = [
     order: 5,
     enabled: true,
     content: {
-      rating: "4.9",
-      reviewCount: "70+",
       sourceLabel: "Яндекс Карты",
       sourceUrl:
         "https://yandex.ru/maps/org/ramzi_dent/180026503415/?ll=35.894276%2C56.855939&z=14",

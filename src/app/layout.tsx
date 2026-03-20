@@ -4,7 +4,6 @@ import { Toaster } from "sonner";
 import { STATIC_OG_PATHS } from "@/lib/og-paths";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
-import { getTestimonialStats } from "@/lib/data";
 import { absoluteUrl } from "@/lib/url";
 
 export { generateMetadata } from "@/lib/seo";
@@ -23,9 +22,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [settings, stats, services] = await Promise.all([
+  const [settings, services] = await Promise.all([
     getSiteSettings(),
-    getTestimonialStats(),
     prisma.service.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
@@ -93,15 +91,6 @@ export default async function RootLayout({
           closes: weekendHours.closes,
         },
       ],
-      ...(stats.count > 0
-        ? {
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: String(stats.avg),
-              reviewCount: String(stats.count),
-            },
-          }
-        : {}),
       sameAs,
       areaServed: settings.city,
       priceRange: "$$",
