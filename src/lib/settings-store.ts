@@ -65,12 +65,13 @@ export async function upsertSettings(entries: Array<[string, string]>) {
   }
 
   await prisma.$transaction(
-    entries.map(([key, value]) =>
-      prisma.siteSettings.upsert({
+    entries.map(([key, value]) => {
+      const storedValue = toStoredValue(key, String(value ?? ""));
+      return prisma.siteSettings.upsert({
         where: { key },
-        update: { value: toStoredValue(key, String(value ?? "")) },
-        create: { key, value: toStoredValue(key, String(value ?? "")) },
-      })
-    )
+        update: { value: storedValue },
+        create: { key, value: storedValue },
+      });
+    })
   );
 }

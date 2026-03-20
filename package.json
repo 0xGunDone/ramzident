@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/**/*.test.cjs",
+    "test": "node --test tests/*.test.cjs",
     "ci": "npm run lint && npm run test && npm run build",
     "db:seed": "node prisma/seed.mjs",
     "og:generate": "node scripts/generate-og.cjs"
