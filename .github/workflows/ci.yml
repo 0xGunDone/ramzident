@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: "file:./ci.db"
+      NEXTAUTH_SECRET: "ci-nextauth-secret"
 
     steps:
       - name: Checkout

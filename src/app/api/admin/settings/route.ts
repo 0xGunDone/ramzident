@@ -48,7 +48,7 @@ export const PUT = withAuth(async (request) => {
     const persisted = (await getSettingValue("openRouterApiKey")).trim();
     if (!persisted) {
       throw new ApiError(
-        "Ключ OpenRouter сохранён, но не читается на сервере. Проверьте SETTINGS_ENCRYPTION_KEY/NEXTAUTH_SECRET и сохраните ключ повторно.",
+        "Ключ OpenRouter сохранён, но не читается на сервере. Проверьте, что SETTINGS_ENCRYPTION_KEY задан и не меняется между перезапусками, затем сохраните ключ повторно.",
         {
           status: 500,
           code: "OPENROUTER_KEY_UNREADABLE",

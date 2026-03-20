@@ -225,7 +225,7 @@ export const POST = withAuth(async (_request, context) => {
 
   if (!ai.apiKey) {
     const error = ai.hasEncryptedDbKeyButUnreadable
-      ? "Ключ OpenRouter найден в БД, но не может быть расшифрован. Проверьте одинаковые SETTINGS_ENCRYPTION_KEY/NEXTAUTH_SECRET на сервере и сохраните ключ повторно в Настройках."
+      ? "Ключ OpenRouter найден в БД, но не может быть расшифрован. Проверьте, что SETTINGS_ENCRYPTION_KEY задан и не меняется между перезапусками, затем сохраните ключ повторно в Настройках."
       : "OPENROUTER_API_KEY не настроен. Укажите ключ в Настройках.";
     return NextResponse.json(
       { error },

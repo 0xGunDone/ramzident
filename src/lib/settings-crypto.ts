@@ -11,12 +11,15 @@ const PREFIX = "enc:v1";
 
 let encryptionWarningShown = false;
 
-function getSettingsSecret() {
-  return (
-    process.env.SETTINGS_ENCRYPTION_KEY?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim() ||
-    ""
-  );
+function getEncryptionSecret() {
+  return process.env.SETTINGS_ENCRYPTION_KEY?.trim() || "";
+}
+
+function getDecryptionSecrets() {
+  const primary = process.env.SETTINGS_ENCRYPTION_KEY?.trim() || "";
+  const legacy = process.env.NEXTAUTH_SECRET?.trim() || "";
+  const secrets = [primary, legacy].filter((value) => value.length > 0);
+  return Array.from(new Set(secrets));
 }
 
 function deriveKey(secret: string) {
@@ -27,7 +30,7 @@ function showEncryptionWarning() {
   if (encryptionWarningShown) return;
   encryptionWarningShown = true;
   console.warn(
-    "[Settings] Missing SETTINGS_ENCRYPTION_KEY/NEXTAUTH_SECRET, storing sensitive settings without encryption."
+    "[Settings] Missing SETTINGS_ENCRYPTION_KEY, storing sensitive settings without encryption."
   );
 }
 
@@ -37,7 +40,7 @@ export function encryptSettingValue(value: string) {
     return "";
   }
 
-  const secret = getSettingsSecret();
+  const secret = getEncryptionSecret();
   if (!secret) {
     showEncryptionWarning();
     return normalized;
@@ -63,8 +66,8 @@ export function decryptSettingValue(value: string) {
     return value;
   }
 
-  const secret = getSettingsSecret();
-  if (!secret) {
+  const secrets = getDecryptionSecrets();
+  if (secrets.length === 0) {
     return "";
   }
 
@@ -73,19 +76,23 @@ export function decryptSettingValue(value: string) {
     return "";
   }
 
-  try {
-    const decipher = createDecipheriv(
-      ALGORITHM,
-      deriveKey(secret),
-      Buffer.from(ivBase64, "base64")
-    );
-    decipher.setAuthTag(Buffer.from(tagBase64, "base64"));
-    const decrypted = Buffer.concat([
-      decipher.update(Buffer.from(encryptedBase64, "base64")),
-      decipher.final(),
-    ]);
-    return decrypted.toString("utf8");
-  } catch {
-    return "";
+  for (const secret of secrets) {
+    try {
+      const decipher = createDecipheriv(
+        ALGORITHM,
+        deriveKey(secret),
+        Buffer.from(ivBase64, "base64")
+      );
+      decipher.setAuthTag(Buffer.from(tagBase64, "base64"));
+      const decrypted = Buffer.concat([
+        decipher.update(Buffer.from(encryptedBase64, "base64")),
+        decipher.final(),
+      ]);
+      return decrypted.toString("utf8");
+    } catch {
+      // Try next secret (legacy compatibility).
+    }
   }
+
+  return "";
 }

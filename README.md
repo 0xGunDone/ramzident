@@ -61,7 +61,7 @@ npm run dev
 - Для mutating admin API включен in-memory rate-limit
 - Для логина включен отдельный rate-limit
 - Ошибки API унифицированы и не возвращают внутренние stack trace
-- `openRouterApiKey` хранится в БД в зашифрованном виде (если задан `SETTINGS_ENCRYPTION_KEY` или `NEXTAUTH_SECRET`)
+- `openRouterApiKey` хранится в БД в зашифрованном виде, если задан `SETTINGS_ENCRYPTION_KEY` (если ключ не задан, значение сохраняется без шифрования)
 - В ответе `/api/admin/settings` ключ OpenRouter не возвращается в открытом виде
 
 ## Переменные окружения
