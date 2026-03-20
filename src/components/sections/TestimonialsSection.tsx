@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Testimonial } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -22,7 +23,7 @@ export default async function TestimonialsSection() {
     prisma.testimonial.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-    }),
+    }) as Promise<Testimonial[]>,
   ]);
 
   if (!section?.enabled || testimonials.length === 0) return null;
@@ -59,7 +60,7 @@ export default async function TestimonialsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial, i) => (
+          {testimonials.map((testimonial: Testimonial, i: number) => (
             <article
               key={testimonial.id}
               className={`surface-card flex flex-col rounded-[2rem] p-6 animate-in ${DELAYS[Math.min(i + 1, 6)]}`}

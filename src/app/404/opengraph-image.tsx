@@ -1,16 +1,11 @@
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "404 Рамзи Дент";
 
 export default function OpenGraphImage() {
-  return createOgImage({
-    eyebrow: "404",
-    title: "Страница не найдена",
-    accent: "Рамзи Дент",
-    description:
-      "Материал был удалён, перенесён или ещё не опубликован. Вернитесь на главную страницу сайта.",
-    tags: ["ramzident.ru", "Тверь"],
-  });
+  return createOgImageResponse(STATIC_OG_PATHS.notFound, STATIC_OG_PATHS.notFound);
 }

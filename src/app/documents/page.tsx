@@ -72,7 +72,7 @@ export default async function DocumentsPage() {
 
           {documents.length > 0 ? (
             <div className="grid gap-4">
-              {documents.map((document) => (
+              {documents.map((document: DocumentsListItem) => (
                 <article
                   key={document.id}
                   className="surface-card flex flex-col gap-3 rounded-[1.8rem] px-6 py-6 transition-transform hover:-translate-y-0.5 md:flex-row md:items-center md:justify-between"

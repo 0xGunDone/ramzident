@@ -1,19 +1,11 @@
-import { getSiteSettings } from "@/lib/site";
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "Рамзи Дент";
 
 export default async function TwitterImage() {
-  const settings = await getSiteSettings();
-
-  return createOgImage({
-    eyebrow: "Рамзи Дент",
-    title: settings.clinicName,
-    accent: "стоматология в Твери",
-    description:
-      "Лечение, детская стоматология, хирургия, имплантация, ортодонтия и эстетические процедуры.",
-    tags: [settings.city, settings.phone],
-  });
+  return createOgImageResponse(STATIC_OG_PATHS.home, STATIC_OG_PATHS.home);
 }

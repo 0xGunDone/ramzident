@@ -36,7 +36,7 @@ export const PUT = withAuth(async (request) => {
   const { sections } = body;
 
   await prisma.$transaction(
-    sections.map((section) =>
+    sections.map((section: { id: string; order: number; enabled?: boolean }) =>
       prisma.section.update({
         where: { id: section.id },
         data: {

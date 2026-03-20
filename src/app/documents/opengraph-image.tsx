@@ -1,19 +1,14 @@
-import { getSiteSettings } from "@/lib/site";
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "Документы Рамзи Дент";
 
 export default async function OpenGraphImage() {
-  const settings = await getSiteSettings();
-
-  return createOgImage({
-    eyebrow: "Документы",
-    title: "Лицензии и обязательная информация",
-    accent: settings.clinicName,
-    description:
-      "Публичный раздел с юридически значимыми документами, лицензиями и политиками клиники.",
-    tags: ["Документы", settings.city, settings.phone],
-  });
+  return createOgImageResponse(
+    STATIC_OG_PATHS.documentsIndex,
+    STATIC_OG_PATHS.documentsIndex
+  );
 }

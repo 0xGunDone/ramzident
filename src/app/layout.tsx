@@ -33,7 +33,7 @@ export default async function RootLayout({
       where: { enabled: true },
       orderBy: { order: "asc" },
       select: { title: true, slug: true },
-    }),
+    }) as Promise<ServiceSchemaItem[]>,
   ]);
   const metrikaId = normalizeMetrikaId(settings.yandexMetrikaId || "");
   const gaId = (settings.googleAnalyticsId || "").trim();

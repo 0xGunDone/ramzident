@@ -1,3 +1,4 @@
+import type { FaqItem } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -18,7 +19,7 @@ export default async function FAQSection() {
     prisma.faqItem.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-    }),
+    }) as Promise<FaqItem[]>,
   ]);
 
   if (!section?.enabled || faqItems.length === 0) return null;
@@ -27,7 +28,7 @@ export default async function FAQSection() {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqItems.map((item) => ({
+    mainEntity: faqItems.map((item: FaqItem) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: {
@@ -47,7 +48,7 @@ export default async function FAQSection() {
         />
 
         <div className="grid gap-4">
-          {faqItems.map((item, i) => (
+          {faqItems.map((item: FaqItem, i: number) => (
             <details
               key={item.id}
               className={`surface-card group rounded-[2rem] px-6 py-6 animate-in ${DELAYS[Math.min(i + 1, 6)]}`}

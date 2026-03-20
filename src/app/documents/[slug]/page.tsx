@@ -191,7 +191,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
                     Другие документы
                   </p>
                   <div className="mt-4 flex flex-col gap-3">
-                    {relatedDocuments.map((item) => (
+                    {relatedDocuments.map((item: RelatedDocumentLink) => (
                       <Link
                         key={item.id}
                         href={`/documents/${item.slug}`}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
@@ -16,6 +17,20 @@ import { absoluteUrl } from "@/lib/url";
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
 }
+
+interface ServiceSlugParam {
+  slug: string;
+}
+
+interface NearbyServiceLink {
+  id: string;
+  slug: string;
+  title: string;
+}
+
+type ServiceWithPhoto = Prisma.ServiceGetPayload<{
+  include: { photo: true };
+}>;
 
 function DetailCard({
   title,
@@ -44,12 +59,12 @@ function DetailCard({
 }
 
 export async function generateStaticParams() {
-  const services = await prisma.service.findMany({
+  const services: ServiceSlugParam[] = await prisma.service.findMany({
     where: { enabled: true },
     select: { slug: true },
   });
 
-  return services.map((service) => ({ slug: service.slug }));
+  return services.map((service: ServiceSlugParam) => ({ slug: service.slug }));
 }
 
 export async function generateMetadata({
@@ -81,13 +96,18 @@ export default async function ServicePage({ params }: ServicePageProps) {
     prisma.service.findUnique({
       where: { slug },
       include: { photo: true },
-    }),
+    }) as Promise<ServiceWithPhoto | null>,
     getSiteSettings(),
     prisma.service.findMany({
       where: { enabled: true, NOT: { slug } },
       orderBy: { order: "asc" },
       take: 3,
-    }),
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+      },
+    }) as Promise<NearbyServiceLink[]>,
   ]);
 
   if (!service || !service.enabled) {
@@ -323,7 +343,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                     Другие услуги
                   </p>
                   <div className="mt-4 flex flex-col gap-4">
-                    {nearbyServices.map((item) => (
+                    {nearbyServices.map((item: NearbyServiceLink) => (
                       <Link
                         key={item.id}
                         href={`/services/${item.slug}`}

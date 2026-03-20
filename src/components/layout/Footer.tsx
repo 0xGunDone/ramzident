@@ -5,6 +5,18 @@ import { getEnabledDocuments } from "@/lib/data";
 import { getSiteSettings } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 
+interface FooterServiceLink {
+  id: string;
+  slug: string;
+  title: string;
+}
+
+interface FooterDocumentLink {
+  id: string;
+  slug: string;
+  title: string;
+}
+
 export default async function Footer() {
   const [settings, services, documents] = await Promise.all([
     getSiteSettings(),
@@ -12,8 +24,13 @@ export default async function Footer() {
       where: { enabled: true },
       orderBy: { order: "asc" },
       take: 4,
-    }),
-    getEnabledDocuments(3),
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+      },
+    }) as Promise<FooterServiceLink[]>,
+    getEnabledDocuments(3) as Promise<FooterDocumentLink[]>,
   ]);
 
   return (
@@ -64,7 +81,7 @@ export default async function Footer() {
               Услуги
             </h3>
             <div className="flex flex-col gap-3 text-sm text-white/75">
-              {services.map((service) => (
+              {services.map((service: FooterServiceLink) => (
                 <Link key={service.id} href={`/services/${service.slug}`}>
                   {service.title}
                 </Link>
@@ -85,7 +102,7 @@ export default async function Footer() {
               </p>
               {documents.length > 0 ? (
                 <div className="flex flex-col gap-2 pt-2">
-                  {documents.map((document) => (
+                  {documents.map((document: FooterDocumentLink) => (
                     <Link key={document.id} href={`/documents/${document.slug}`}>
                       {document.title}
                     </Link>

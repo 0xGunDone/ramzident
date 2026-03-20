@@ -10,9 +10,12 @@ import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import FAQSection from "@/components/sections/FAQSection";
 import DocumentsSection from "@/components/sections/DocumentsSection";
 import ContactsSection from "@/components/sections/ContactsSection";
+import type { Section } from "@prisma/client";
 import { getSections } from "@/lib/site";
 
 type SectionRenderer = () => Promise<React.ReactNode>;
+type HomeSection = Pick<Section, "id" | "type">;
+type RenderedSection = { id: string; node: React.ReactNode };
 
 const sectionRenderers: Record<string, SectionRenderer> = {
   hero: HeroSection,
@@ -27,10 +30,10 @@ const sectionRenderers: Record<string, SectionRenderer> = {
 };
 
 export default async function Home() {
-  const sections = await getSections();
+  const sections = (await getSections()) as HomeSection[];
 
-  const renderedSections = await Promise.all(
-    sections.map(async (section) => {
+  const renderedSections: RenderedSection[] = await Promise.all(
+    sections.map(async (section: HomeSection): Promise<RenderedSection> => {
       const render = sectionRenderers[section.type];
 
       return {
@@ -45,7 +48,7 @@ export default async function Home() {
       <HashScrollHandler />
       <Header />
       <main>
-        {renderedSections.map((section) => (
+        {renderedSections.map((section: RenderedSection) => (
           <div key={section.id}>{section.node}</div>
         ))}
       </main>

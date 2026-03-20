@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Media } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -22,7 +23,7 @@ export default async function GallerySection() {
       },
       orderBy: { createdAt: "asc" },
       take: 6,
-    }),
+    }) as Promise<Media[]>,
   ]);
 
   if (!section?.enabled || images.length === 0) return null;
@@ -40,7 +41,7 @@ export default async function GallerySection() {
         />
 
         <div className="grid auto-rows-[220px] gap-4 md:grid-cols-3 lg:auto-rows-[260px]">
-          {images.map((image, index) => (
+          {images.map((image: Media, index: number) => (
             <div
               key={image.id}
               className={`surface-card relative overflow-hidden rounded-[2rem] ${

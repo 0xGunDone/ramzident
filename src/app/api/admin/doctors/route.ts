@@ -45,7 +45,7 @@ export const PUT = withAuth(async (request) => {
   const { doctors } = body;
 
   await prisma.$transaction(
-    doctors.map((doctor) =>
+    doctors.map((doctor: { id: string; order: number }) =>
       prisma.doctor.update({
         where: { id: doctor.id },
         data: { order: doctor.order },

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -10,6 +11,9 @@ interface DocumentsContent {
 const fallbackContent: DocumentsContent = {
   description: "Лицензии, политика, оферта и другие обязательные документы.",
 };
+type SectionDocumentItem = Prisma.SiteDocumentGetPayload<{
+  include: { file: true };
+}>;
 
 export default async function DocumentsSection() {
   const [section, documents] = await Promise.all([
@@ -19,7 +23,7 @@ export default async function DocumentsSection() {
       orderBy: { order: "asc" },
       include: { file: true },
       take: 4,
-    }),
+    }) as Promise<SectionDocumentItem[]>,
   ]);
 
   if (!section?.enabled || documents.length === 0) return null;
@@ -44,7 +48,7 @@ export default async function DocumentsSection() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
-          {documents.map((document) => (
+          {documents.map((document: SectionDocumentItem) => (
             <article
               key={document.id}
               className="surface-card rounded-[1.8rem] px-6 py-6"

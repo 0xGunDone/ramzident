@@ -1,19 +1,11 @@
-import { getSiteSettings } from "@/lib/site";
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "Рамзи Дент";
 
 export default async function OpenGraphImage() {
-  const settings = await getSiteSettings();
-
-  return createOgImage({
-    eyebrow: "Стоматология в Твери",
-    title: settings.clinicName,
-    accent: "для взрослых и детей",
-    description:
-      "Терапия, детская стоматология, ортодонтия, хирургия, имплантация и эстетические процедуры.",
-    tags: [settings.city, settings.workHoursWeekdays, settings.phone],
-  });
+  return createOgImageResponse(STATIC_OG_PATHS.home, STATIC_OG_PATHS.home);
 }

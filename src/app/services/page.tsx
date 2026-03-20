@@ -8,6 +8,16 @@ import { getServicesIndexStaticOgPath } from "@/lib/og-static";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 
+interface ServiceListItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string;
+  priceFrom: string | null;
+  duration: string | null;
+}
+
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,9 +35,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ServicesPage() {
-  const services = await prisma.service.findMany({
+  const services: ServiceListItem[] = await prisma.service.findMany({
     where: { enabled: true },
     orderBy: { order: "asc" },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      description: true,
+      priceFrom: true,
+      duration: true,
+    },
   });
 
   return (
@@ -43,7 +62,7 @@ export default async function ServicesPage() {
           />
 
           <div className="grid gap-4">
-            {services.map((service) => (
+            {services.map((service: ServiceListItem) => (
               <Link
                 key={service.id}
                 href={`/services/${service.slug}`}

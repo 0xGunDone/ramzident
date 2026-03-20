@@ -45,6 +45,11 @@ interface ResolvedSiteSettings {
   workHoursWeekdays: string;
 }
 
+interface SiteSettingItem {
+  key: string;
+  value: string;
+}
+
 interface OgCardInput {
   eyebrow?: string;
   title: string;
@@ -294,11 +299,16 @@ async function renderStaticOgImage(publicPath: string, card: OgCardInput) {
 }
 
 async function getSiteSettingsMap() {
-  const items = await prisma.siteSettings.findMany();
-  return items.reduce<SiteSettingsMap>((acc, item) => {
-    acc[item.key] = item.value;
-    return acc;
-  }, {});
+  const items = (await prisma.siteSettings.findMany({
+    select: { key: true, value: true },
+  })) as SiteSettingItem[];
+  return items.reduce<SiteSettingsMap>(
+    (acc: SiteSettingsMap, item: SiteSettingItem) => {
+      acc[item.key] = item.value;
+      return acc;
+    },
+    {}
+  );
 }
 
 async function getResolvedSiteSettings(): Promise<ResolvedSiteSettings> {
@@ -434,7 +444,7 @@ async function cleanupDirectory(publicDirectory: string, keepFileNames: string[]
   const keep = new Set(keepFileNames);
 
   await Promise.all(
-    fileNames.map(async (fileName) => {
+    fileNames.map(async (fileName: string) => {
       if (!keep.has(fileName)) {
         await rm(path.join(absoluteDirectory, fileName), { force: true });
       }
@@ -502,7 +512,7 @@ export async function generateAllStaticOgImages() {
         enabled: true,
         updatedAt: true,
       },
-    }),
+    }) as Promise<OgRenderableService[]>,
     prisma.siteDocument.findMany({
       where: { enabled: true, fileId: { not: null } },
       select: {
@@ -514,7 +524,7 @@ export async function generateAllStaticOgImages() {
         enabled: true,
         updatedAt: true,
       },
-    }),
+    }) as Promise<OgRenderableDocument[]>,
   ]);
 
   await generateGlobalStaticOgImages();
@@ -522,16 +532,22 @@ export async function generateAllStaticOgImages() {
   await mkdir(getPublicAbsolutePath(`${OG_ROOT}/services`), { recursive: true });
   await mkdir(getPublicAbsolutePath(`${OG_ROOT}/documents`), { recursive: true });
 
-  await Promise.all(services.map((service) => generateServiceStaticOgImage(service)));
-  await Promise.all(documents.map((document) => generateDocumentStaticOgImage(document)));
+  await Promise.all(
+    services.map((service: OgRenderableService) => generateServiceStaticOgImage(service))
+  );
+  await Promise.all(
+    documents.map((document: OgRenderableDocument) =>
+      generateDocumentStaticOgImage(document)
+    )
+  );
 
   await cleanupDirectory(
     `${OG_ROOT}/services`,
-    services.map((service) => `${service.slug}.jpg`)
+    services.map((service: OgRenderableService) => `${service.slug}.jpg`)
   );
   await cleanupDirectory(
     `${OG_ROOT}/documents`,
-    documents.map((document) => `${document.slug}.jpg`)
+    documents.map((document: OgRenderableDocument) => `${document.slug}.jpg`)
   );
 
   const manifest = {

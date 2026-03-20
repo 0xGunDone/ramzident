@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { getServiceBySlug } from "@/lib/data";
-import { getSiteSettings } from "@/lib/site";
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { getServiceStaticOgPath, STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "Услуга Рамзи Дент";
 
 interface ServiceTwitterImageProps {
@@ -15,20 +16,14 @@ export default async function TwitterImage({
   params,
 }: ServiceTwitterImageProps) {
   const { slug } = await params;
-  const [service, settings] = await Promise.all([
-    getServiceBySlug(slug),
-    getSiteSettings(),
-  ]);
+  const service = await getServiceBySlug(slug);
 
   if (!service || !service.enabled) {
     notFound();
   }
 
-  return createOgImage({
-    eyebrow: "Услуга",
-    title: service.seoTitle || service.title,
-    accent: settings.clinicName,
-    description: service.seoDescription || service.summary || service.description,
-    tags: [service.priceFrom || "", service.duration || "", settings.city],
-  });
+  return createOgImageResponse(
+    getServiceStaticOgPath(service.slug),
+    STATIC_OG_PATHS.servicesIndex
+  );
 }

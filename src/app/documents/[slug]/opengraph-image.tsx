@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { createOgImage, ogContentType, ogSize } from "@/lib/og";
+import { getDocumentStaticOgPath, STATIC_OG_PATHS } from "@/lib/og-paths";
+import { createOgImageResponse } from "@/lib/og-route";
+import { ogSize } from "@/lib/og";
 
 export const size = ogSize;
-export const contentType = ogContentType;
+export const contentType = "image/jpeg";
 export const alt = "Документ Рамзи Дент";
 
 interface DocumentOgImageProps {
@@ -27,13 +29,8 @@ export default async function OpenGraphImage({ params }: DocumentOgImageProps) {
     notFound();
   }
 
-  return createOgImage({
-    eyebrow: document.type,
-    title: document.title,
-    accent: "Рамзи Дент",
-    description:
-      document.description ||
-      "Публичная страница документа стоматологической клиники в Твери.",
-    tags: ["Документы", "Тверь"],
-  });
+  return createOgImageResponse(
+    getDocumentStaticOgPath(slug),
+    STATIC_OG_PATHS.documentsIndex
+  );
 }

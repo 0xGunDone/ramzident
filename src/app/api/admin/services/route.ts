@@ -55,7 +55,7 @@ export const PUT = withAuth(async (request) => {
   const { services } = body;
 
   await prisma.$transaction(
-    services.map((service) =>
+    services.map((service: { id: string; order: number }) =>
       prisma.service.update({
         where: { id: service.id },
         data: { order: service.order },

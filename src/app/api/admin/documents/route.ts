@@ -52,7 +52,7 @@ export const PUT = withAuth(async (request) => {
   const { documents } = body;
 
   await prisma.$transaction(
-    documents.map((document) =>
+    documents.map((document: { id: string; order: number }) =>
       prisma.siteDocument.update({
         where: { id: document.id },
         data: { order: document.order },
