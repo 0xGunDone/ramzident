@@ -9,6 +9,15 @@ import { getDocumentsIndexStaticOgPath } from "@/lib/og-static";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site";
 
+interface DocumentsListItem {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  type: string;
+  file: { path: string } | null;
+}
+
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,8 +42,19 @@ export default async function DocumentsPage() {
     prisma.siteDocument.findMany({
       where: { enabled: true, fileId: { not: null } },
       orderBy: { order: "asc" },
-      include: { file: true },
-    }),
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        type: true,
+        file: {
+          select: {
+            path: true,
+          },
+        },
+      },
+    }) as Promise<DocumentsListItem[]>,
     getSiteSettings(),
   ]);
 
