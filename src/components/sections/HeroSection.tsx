@@ -180,7 +180,7 @@ export default async function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-[rgba(16,46,53,0.4)] via-transparent to-transparent" />
             </div>
 
-            <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/30 bg-white/80 p-5 shadow-[0_12px_40px_rgba(16,46,53,0.12)] backdrop-blur-xl sm:inset-x-8 sm:bottom-8 sm:rounded-[1.6rem]">
+            <div className="relative mt-4 rounded-2xl border border-white/30 bg-white/80 p-5 shadow-[0_12px_40px_rgba(16,46,53,0.12)] backdrop-blur-xl sm:mt-5 sm:rounded-[1.6rem] lg:absolute lg:inset-x-8 lg:bottom-8 lg:mt-0">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[var(--accent)]">

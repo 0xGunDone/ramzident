@@ -25,7 +25,7 @@ export async function generateStaticParams() {
     select: { slug: true },
   });
 
-  return documents.map((document) => ({ slug: document.slug }));
+  return documents.map((document: { slug: string }) => ({ slug: document.slug }));
 }
 
 export async function generateMetadata({
