@@ -185,6 +185,41 @@ function extractJsonString(content: string) {
   return content.slice(jsonStart, jsonEnd + 1);
 }
 
+function clampAiText(value: unknown, maxLength: number): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  const normalized = String(value).replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const chars = Array.from(normalized);
+  if (chars.length <= maxLength) {
+    return normalized;
+  }
+
+  return chars.slice(0, maxLength).join("").trim();
+}
+
+function normalizeAiSeoPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return payload;
+  }
+
+  const source = payload as Record<string, unknown>;
+  return {
+    altText: clampAiText(source.altText, 100),
+    seoTitle: clampAiText(source.seoTitle, 60),
+    seoDescription: clampAiText(source.seoDescription, 160),
+  };
+}
+
 export const POST = withAuth(async (_request, context) => {
   const ai = await getAiSettings();
 
@@ -264,9 +299,12 @@ export const POST = withAuth(async (_request, context) => {
   };
 
   try {
+    const rawPayload = JSON.parse(extractJsonString(content));
+    const normalizedPayload = normalizeAiSeoPayload(rawPayload);
+
     parsedJson = parsePayload(
       aiSeoResultSchema,
-      JSON.parse(extractJsonString(content)),
+      normalizedPayload,
       "Failed to parse AI output"
     );
   } catch (error) {
