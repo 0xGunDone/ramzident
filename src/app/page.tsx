@@ -10,11 +10,10 @@ import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import FAQSection from "@/components/sections/FAQSection";
 import DocumentsSection from "@/components/sections/DocumentsSection";
 import ContactsSection from "@/components/sections/ContactsSection";
-import type { Section } from "@prisma/client";
 import { getSections } from "@/lib/site";
 
 type SectionRenderer = () => Promise<React.ReactNode>;
-type HomeSection = Pick<Section, "id" | "type">;
+type HomeSection = { id: string; type: string };
 type RenderedSection = { id: string; node: React.ReactNode };
 
 const sectionRenderers: Record<string, SectionRenderer> = {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Testimonial } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -16,6 +15,14 @@ const fallbackContent: TestimonialsContent = {
 };
 
 const DELAYS = ["", "delay-1", "delay-2", "delay-3", "delay-4", "delay-5", "delay-6"];
+interface TestimonialView {
+  id: string;
+  rating: number;
+  quote: string;
+  author: string;
+  role: string | null;
+  source: string | null;
+}
 
 export default async function TestimonialsSection() {
   const [section, testimonials] = await Promise.all([
@@ -23,7 +30,15 @@ export default async function TestimonialsSection() {
     prisma.testimonial.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-    }) as Promise<Testimonial[]>,
+      select: {
+        id: true,
+        rating: true,
+        quote: true,
+        author: true,
+        role: true,
+        source: true,
+      },
+    }) as Promise<TestimonialView[]>,
   ]);
 
   if (!section?.enabled || testimonials.length === 0) return null;
@@ -60,7 +75,7 @@ export default async function TestimonialsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial: Testimonial, i: number) => (
+          {testimonials.map((testimonial: TestimonialView, i: number) => (
             <article
               key={testimonial.id}
               className={`surface-card flex flex-col rounded-[2rem] p-6 animate-in ${DELAYS[Math.min(i + 1, 6)]}`}

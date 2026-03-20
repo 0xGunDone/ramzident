@@ -1,5 +1,4 @@
 import { cache } from "react";
-import type { Section } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { env, siteConfig } from "@/lib/env";
 import { getSettingsMap } from "@/lib/settings-store";
@@ -31,6 +30,17 @@ export interface ResolvedSiteSettings {
   creatorUrl: string;
   openRouterApiKey: string;
   openRouterModel: string;
+}
+
+export interface SectionRecord {
+  id: string;
+  type: string;
+  title: string | null;
+  order: number;
+  enabled: boolean;
+  content: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const safeParseJson = <T>(value: string | null | undefined, fallback: T): T => {
@@ -79,19 +89,19 @@ export const getSiteSettings: () => Promise<ResolvedSiteSettings> = cache(
   }
 );
 
-export const getSections: () => Promise<Section[]> = cache(
-  async (): Promise<Section[]> =>
+export const getSections: () => Promise<SectionRecord[]> = cache(
+  async (): Promise<SectionRecord[]> =>
     prisma.section.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-    })
+    }) as Promise<SectionRecord[]>
 );
 
-export const getSectionByType: (type: string) => Promise<Section | null> = cache(
-  async (type: string): Promise<Section | null> =>
+export const getSectionByType: (type: string) => Promise<SectionRecord | null> = cache(
+  async (type: string): Promise<SectionRecord | null> =>
     prisma.section.findUnique({
       where: { type },
-    })
+    }) as Promise<SectionRecord | null>
 );
 
 export const parseSectionContent = <T>(

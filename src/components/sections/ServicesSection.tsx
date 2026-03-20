@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Prisma } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { isUploadedMediaPath } from "@/lib/images";
 import { getServiceDetailContent } from "@/lib/service-details";
@@ -31,9 +30,21 @@ const fallbackContent: ServicesSectionContent = {
 };
 
 const DELAYS = ["", "delay-1", "delay-2", "delay-3", "delay-4", "delay-5", "delay-6"];
-type SectionServiceItem = Prisma.ServiceGetPayload<{
-  include: { photo: true };
-}>;
+interface SectionServiceItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string;
+  priceFrom: string | null;
+  duration: string | null;
+  icon: string | null;
+  badge: string | null;
+  photo: {
+    path: string;
+    altText: string | null;
+  } | null;
+}
 
 export default async function ServicesSection() {
   const [section, services] = await Promise.all([
@@ -41,7 +52,23 @@ export default async function ServicesSection() {
     prisma.service.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-      include: { photo: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        description: true,
+        priceFrom: true,
+        duration: true,
+        icon: true,
+        badge: true,
+        photo: {
+          select: {
+            path: true,
+            altText: true,
+          },
+        },
+      },
     }) as Promise<SectionServiceItem[]>,
   ]);
 

@@ -1,6 +1,5 @@
 import path from "node:path";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
-import type { Service, SiteDocument } from "@prisma/client";
 import sharp from "sharp";
 import { getOgFonts } from "./og-fonts";
 import {
@@ -19,24 +18,28 @@ const OG_ROOT = "/og";
 
 type SiteSettingsMap = Record<string, string>;
 
-type OgRenderableService = Pick<
-  Service,
-  | "slug"
-  | "title"
-  | "summary"
-  | "description"
-  | "priceFrom"
-  | "duration"
-  | "seoTitle"
-  | "seoDescription"
-  | "enabled"
-  | "updatedAt"
->;
+interface OgRenderableService {
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string;
+  priceFrom: string | null;
+  duration: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  enabled: boolean;
+  updatedAt: Date;
+}
 
-type OgRenderableDocument = Pick<
-  SiteDocument,
-  "slug" | "title" | "description" | "type" | "fileId" | "enabled" | "updatedAt"
->;
+interface OgRenderableDocument {
+  slug: string;
+  title: string;
+  description: string | null;
+  type: string;
+  fileId: string | null;
+  enabled: boolean;
+  updatedAt: Date;
+}
 
 interface ResolvedSiteSettings {
   clinicName: string;

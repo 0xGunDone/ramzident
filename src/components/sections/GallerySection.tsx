@@ -1,5 +1,4 @@
 import Image from "next/image";
-import type { Media } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -13,6 +12,13 @@ const fallbackContent: GallerySectionContent = {
   description: "Реальные фотографии клиники.",
 };
 
+interface GalleryImageItem {
+  id: string;
+  path: string;
+  altText: string | null;
+  label: string | null;
+}
+
 export default async function GallerySection() {
   const [section, images] = await Promise.all([
     getSectionByType("gallery"),
@@ -22,8 +28,14 @@ export default async function GallerySection() {
         mimeType: { startsWith: "image/" },
       },
       orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        path: true,
+        altText: true,
+        label: true,
+      },
       take: 6,
-    }) as Promise<Media[]>,
+    }) as Promise<GalleryImageItem[]>,
   ]);
 
   if (!section?.enabled || images.length === 0) return null;
@@ -41,7 +53,7 @@ export default async function GallerySection() {
         />
 
         <div className="grid auto-rows-[220px] gap-4 md:grid-cols-3 lg:auto-rows-[260px]">
-          {images.map((image: Media, index: number) => (
+          {images.map((image: GalleryImageItem, index: number) => (
             <div
               key={image.id}
               className={`surface-card relative overflow-hidden rounded-[2rem] ${

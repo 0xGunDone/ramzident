@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Prisma } from "@prisma/client";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PhoneLink from "@/components/ui/PhoneLink";
@@ -28,9 +27,24 @@ interface NearbyServiceLink {
   title: string;
 }
 
-type ServiceWithPhoto = Prisma.ServiceGetPayload<{
-  include: { photo: true };
-}>;
+interface ServiceWithPhoto {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string;
+  body: string | null;
+  priceFrom: string | null;
+  duration: string | null;
+  badge: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  enabled: boolean;
+  photo: {
+    path: string;
+    altText: string | null;
+  } | null;
+}
 
 function DetailCard({
   title,
@@ -95,7 +109,26 @@ export default async function ServicePage({ params }: ServicePageProps) {
   const [service, settings, nearbyServices] = await Promise.all([
     prisma.service.findUnique({
       where: { slug },
-      include: { photo: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        description: true,
+        body: true,
+        priceFrom: true,
+        duration: true,
+        badge: true,
+        seoTitle: true,
+        seoDescription: true,
+        enabled: true,
+        photo: {
+          select: {
+            path: true,
+            altText: true,
+          },
+        },
+      },
     }) as Promise<ServiceWithPhoto | null>,
     getSiteSettings(),
     prisma.service.findMany({

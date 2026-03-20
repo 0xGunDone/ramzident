@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/prisma";
 import { getSectionByType, parseSectionContent } from "@/lib/site";
@@ -11,9 +10,13 @@ interface DocumentsContent {
 const fallbackContent: DocumentsContent = {
   description: "Лицензии, политика, оферта и другие обязательные документы.",
 };
-type SectionDocumentItem = Prisma.SiteDocumentGetPayload<{
-  include: { file: true };
-}>;
+interface SectionDocumentItem {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  type: string;
+}
 
 export default async function DocumentsSection() {
   const [section, documents] = await Promise.all([
@@ -21,7 +24,13 @@ export default async function DocumentsSection() {
     prisma.siteDocument.findMany({
       where: { enabled: true, fileId: { not: null } },
       orderBy: { order: "asc" },
-      include: { file: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        type: true,
+      },
       take: 4,
     }) as Promise<SectionDocumentItem[]>,
   ]);

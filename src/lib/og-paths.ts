@@ -1,5 +1,3 @@
-import type { Service, SiteDocument } from "@prisma/client";
-
 const OG_ROOT = "/og";
 
 export const STATIC_OG_PATHS = {
@@ -50,12 +48,18 @@ export function getNotFoundStaticOgPath() {
   return STATIC_OG_PATHS.notFound;
 }
 
-export function getServiceStaticOgPathWithVersion(service: Pick<Service, "slug" | "updatedAt">) {
+export function getServiceStaticOgPathWithVersion(service: {
+  slug: string;
+  updatedAt: Date;
+}) {
   return versionOgAsset(getServiceStaticOgPath(service.slug), service.updatedAt);
 }
 
 export function getDocumentStaticOgPathWithVersion(
-  document: Pick<SiteDocument, "slug" | "updatedAt">
+  document: {
+    slug: string;
+    updatedAt: Date;
+  }
 ) {
   return versionOgAsset(getDocumentStaticOgPath(document.slug), document.updatedAt);
 }

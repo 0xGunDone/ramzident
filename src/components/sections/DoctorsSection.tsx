@@ -1,5 +1,4 @@
 import Image from "next/image";
-import type { Prisma } from "@prisma/client";
 import PhoneLink from "@/components/ui/PhoneLink";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { getDoctorProfile } from "@/lib/doctor-profiles";
@@ -16,9 +15,20 @@ const fallbackContent: DoctorsSectionContent = {
 };
 
 const DELAYS = ["", "delay-1", "delay-2", "delay-3", "delay-4", "delay-5", "delay-6"];
-type SectionDoctorItem = Prisma.DoctorGetPayload<{
-  include: { photo: true };
-}>;
+interface SectionDoctorItem {
+  id: string;
+  slug: string;
+  name: string;
+  speciality: string;
+  experience: string | null;
+  bio: string | null;
+  education: string | null;
+  schedule: string | null;
+  photo: {
+    path: string;
+    altText: string | null;
+  } | null;
+}
 
 export default async function DoctorsSection() {
   const [section, doctors, settings] = await Promise.all([
@@ -26,7 +36,22 @@ export default async function DoctorsSection() {
     prisma.doctor.findMany({
       where: { enabled: true },
       orderBy: { order: "asc" },
-      include: { photo: true },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        speciality: true,
+        experience: true,
+        bio: true,
+        education: true,
+        schedule: true,
+        photo: {
+          select: {
+            path: true,
+            altText: true,
+          },
+        },
+      },
     }) as Promise<SectionDoctorItem[]>,
     getSiteSettings(),
   ]);
