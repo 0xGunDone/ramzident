@@ -57,6 +57,9 @@ model Doctor {
   bio        String?
   education  String?
   schedule   String?
+  focusAreas String?
+  bestFor    String?
+  careStyle  String?
   photoId    String? // Reference to Media id
   photo      Media?  @relation("DoctorPhoto", fields: [photoId], references: [id], onDelete: SetNull)
   order      Int     @default(0)

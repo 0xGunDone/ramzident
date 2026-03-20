@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AiAssistPanel from "@/components/admin/AiAssistPanel";
+import { requestAdminAiDraft } from "@/lib/admin-ai-client";
 import type { DocumentItem, MediaOption } from "@/types";
 import { isUploadedMediaPath } from "@/lib/images";
 
@@ -34,6 +36,13 @@ export default function DocumentsManager() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialForm);
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  interface DocumentAiDraft {
+    title?: string | null;
+    description?: string | null;
+    type?: string | null;
+  }
 
   const filteredDocuments = documents.filter(
     (doc) =>
@@ -112,6 +121,49 @@ export default function DocumentsManager() {
     await refresh();
     resetForm();
     toast.success("Документ сохранён");
+  };
+
+  const generateAiDraft = async () => {
+    if (
+      !formData.title.trim() &&
+      !formData.description.trim() &&
+      !selectedFile &&
+      !formData.type.trim()
+    ) {
+      toast.error("Для AI заполнения укажите хотя бы название, тип, описание или файл");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const draft = await requestAdminAiDraft<DocumentAiDraft>("document", {
+        title: formData.title || null,
+        description: formData.description || null,
+        type: formData.type || null,
+        file: selectedFile
+          ? {
+              label: selectedFile.label || null,
+              path: selectedFile.path,
+              mimeType: selectedFile.mimeType || null,
+            }
+          : null,
+      });
+
+      setFormData((current) => ({
+        ...current,
+        title: draft.title ?? current.title,
+        description: draft.description ?? current.description,
+        type: draft.type ?? current.type,
+      }));
+      toast.success("AI подготовил черновик документа");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const moveDocument = async (id: string, direction: -1 | 1) => {
@@ -245,6 +297,13 @@ export default function DocumentsManager() {
                 привяжите его к документу здесь.
               </p>
             </label>
+            <div className="md:col-span-2">
+              <AiAssistPanel
+                description="AI готовит название, описание и тип документа по текущему тексту и выбранному файлу. Номера лицензий, даты и юридические формулировки проверьте вручную."
+                onGenerate={generateAiDraft}
+                loading={aiGenerating}
+              />
+            </div>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Описание</span>
               <textarea

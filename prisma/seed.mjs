@@ -426,6 +426,11 @@ const doctors = [
     speciality: "Стоматолог общей практики, ортодонт",
     experience: "33 года",
     bio: "Ведёт терапевтический и ортодонтический приём, работает со взрослыми и детьми, делает акцент на понятном плане лечения и аккуратном сопровождении пациента.",
+    focusAreas: "Терапия\nОртодонтия\nПриём взрослых и детей",
+    bestFor:
+      "Плановый осмотр, лечение кариеса, консультация по прикусу и длительное сопровождение.",
+    careStyle:
+      "Спокойно объясняет план лечения и помогает выстроить понятный маршрут для пациента.",
     education:
       "Многолетний клинический опыт в лечении и сопровождении пациентов разного возраста.",
     schedule:
@@ -440,6 +445,11 @@ const doctors = [
     speciality: "Детский стоматолог",
     experience: null,
     bio: "Специализируется на профилактике, лечении молочных и постоянных зубов и бережной адаптации ребёнка к стоматологическому приёму.",
+    focusAreas: "Детский приём\nПрофилактика\nАдаптация ребёнка",
+    bestFor:
+      "Первое знакомство ребёнка со стоматологом, профилактика и лечение молочных зубов.",
+    careStyle:
+      "Делает акцент на мягкой коммуникации с ребёнком и комфортном формате посещения.",
     education:
       "В работе делает акцент на мягкой коммуникации с ребёнком и спокойном знакомстве с лечением.",
     schedule:
@@ -454,6 +464,11 @@ const doctors = [
     speciality: "Стоматолог, хирург-имплантолог",
     experience: null,
     bio: "Ведёт хирургический приём, удаление зубов и консультации по имплантации, подбирая решение под клиническую задачу пациента.",
+    focusAreas: "Хирургия\nИмплантация\nВосстановление зубного ряда",
+    bestFor:
+      "Удаление зубов, консультация по имплантации и выбор плана последующего восстановления.",
+    careStyle:
+      "Подбирает решение под клиническую задачу и заранее объясняет последовательность этапов.",
     education:
       "Подбирает план лечения с учётом клинической ситуации и последующего восстановления зубного ряда.",
     schedule:
@@ -776,6 +791,9 @@ async function upsertDoctors() {
         bio: doctor.bio,
         education: doctor.education,
         schedule: doctor.schedule,
+        focusAreas: doctor.focusAreas,
+        bestFor: doctor.bestFor,
+        careStyle: doctor.careStyle,
         photoId: mediaByPath.get(doctor.photoPath) || null,
         order: doctor.order,
         enabled: doctor.enabled,
@@ -787,6 +805,9 @@ async function upsertDoctors() {
         bio: doctor.bio,
         education: doctor.education,
         schedule: doctor.schedule,
+        focusAreas: doctor.focusAreas,
+        bestFor: doctor.bestFor,
+        careStyle: doctor.careStyle,
         photoId: mediaByPath.get(doctor.photoPath) || null,
         order: doctor.order,
         enabled: doctor.enabled,

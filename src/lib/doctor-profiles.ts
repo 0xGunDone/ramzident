@@ -4,6 +4,8 @@ export interface DoctorProfile {
   careStyle: string;
 }
 
+const focusAreaSplitPattern = /[\n,;]+/;
+
 const doctorProfiles: Record<string, DoctorProfile> = {
   "nemeh-ramzi": {
     focusAreas: ["Терапия", "Ортодонтия", "Приём взрослых и детей"],
@@ -28,6 +30,33 @@ const doctorProfiles: Record<string, DoctorProfile> = {
   },
 };
 
-export function getDoctorProfile(slug: string) {
-  return doctorProfiles[slug];
+const doctorProfilesByName: Record<string, DoctorProfile> = {
+  "Немех Рамзи": doctorProfiles["nemeh-ramzi"],
+  "Гаджикулиева Сирена": doctorProfiles["gadzhikulieva-sirena"],
+  "Эль-Амин Рами": doctorProfiles["el-amin-rami"],
+};
+
+export function getDoctorProfile(slug: string, name?: string | null) {
+  if (doctorProfiles[slug]) {
+    return doctorProfiles[slug];
+  }
+
+  if (name && doctorProfilesByName[name]) {
+    return doctorProfilesByName[name];
+  }
+
+  return undefined;
+}
+
+export function parseDoctorFocusAreas(value: string | null | undefined) {
+  if (!value) return [];
+
+  return Array.from(
+    new Set(
+      value
+        .split(focusAreaSplitPattern)
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  );
 }

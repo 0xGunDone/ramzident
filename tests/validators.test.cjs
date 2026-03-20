@@ -17,6 +17,7 @@ require("tsconfig-paths/register");
 const { ApiError } = require("../src/lib/errors.ts");
 const {
   doctorAiFillInputSchema,
+  doctorCreateSchema,
   parsePayload,
   serviceCreateSchema,
   settingsUpdateSchema,
@@ -89,4 +90,20 @@ test("doctor ai fill schema rejects missing speciality", () => {
       return true;
     }
   );
+});
+
+test("doctor create schema accepts editable public profile fields", () => {
+  const payload = parsePayload(doctorCreateSchema, {
+    name: "Немех Рамзи",
+    speciality: "Стоматолог общей практики, ортодонт",
+    focusAreas: "Терапия\nОртодонтия\nПриём взрослых и детей",
+    bestFor: "Плановый осмотр и длительное сопровождение.",
+    careStyle: "Спокойно объясняет план лечения.",
+    enabled: true,
+  });
+
+  assert.equal(payload.focusAreas, "Терапия\nОртодонтия\nПриём взрослых и детей");
+  assert.equal(payload.bestFor, "Плановый осмотр и длительное сопровождение.");
+  assert.equal(payload.careStyle, "Спокойно объясняет план лечения.");
+  assert.equal(payload.enabled, true);
 });

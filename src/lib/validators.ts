@@ -111,6 +111,9 @@ const doctorFields = {
   bio: optionalNullableText(4_000),
   education: optionalNullableText(4_000),
   schedule: optionalNullableText(200),
+  focusAreas: optionalNullableText(1_500),
+  bestFor: optionalNullableText(2_000),
+  careStyle: optionalNullableText(2_000),
   photoId: optionalNullableText(191),
   enabled: booleanLike.optional(),
 };

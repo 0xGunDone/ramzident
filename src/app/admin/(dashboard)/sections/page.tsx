@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
+import AiAssistPanel from "@/components/admin/AiAssistPanel";
+import { requestAdminAiDraft } from "@/lib/admin-ai-client";
 import type { MediaOption } from "@/types";
 
 interface SectionItem {
@@ -364,6 +366,12 @@ export default function SectionsManager() {
   const [editingType, setEditingType] = useState("");
   const [title, setTitle] = useState("");
   const [contentData, setContentData] = useState<ContentMap>({});
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  interface SectionAiDraft {
+    sectionTitle?: string | null;
+    content?: Record<string, unknown> | null;
+  }
 
   const load = useCallback(async () => {
     try {
@@ -447,6 +455,46 @@ export default function SectionsManager() {
     setEditingId(null);
   };
 
+  const generateAiDraft = async () => {
+    if (!editingType) return;
+
+    setAiGenerating(true);
+
+    try {
+      const draft = await requestAdminAiDraft<SectionAiDraft>("section", {
+        sectionType: editingType,
+        sectionTitle: title || null,
+        content: contentData,
+      });
+
+      if (draft.sectionTitle !== undefined && draft.sectionTitle !== null) {
+        setTitle(draft.sectionTitle);
+      }
+
+      if (draft.content && typeof draft.content === "object") {
+        setContentData((current) => {
+          const next = { ...current };
+
+          for (const [key, value] of Object.entries(draft.content || {})) {
+            if (value !== undefined && value !== null) {
+              next[key] = value;
+            }
+          }
+
+          return next;
+        });
+      }
+
+      toast.success("AI подготовил черновик секции");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   if (loading) return <div>Загрузка...</div>;
 
   return (
@@ -472,6 +520,12 @@ export default function SectionsManager() {
               value={title}
               onChange={setTitle}
               placeholder="Отображается на главной странице"
+            />
+
+            <AiAssistPanel
+              description="AI перерабатывает только текстовые поля текущей секции. Ссылки, медиа, файлы и числовые блоки остаются ручными и требуют проверки фактов."
+              onGenerate={generateAiDraft}
+              loading={aiGenerating}
             />
 
             <div className="border-t border-slate-100 pt-5">

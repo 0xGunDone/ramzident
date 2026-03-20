@@ -1,7 +1,7 @@
 import Image from "next/image";
 import PhoneLink from "@/components/ui/PhoneLink";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { getDoctorProfile } from "@/lib/doctor-profiles";
+import { getDoctorProfile, parseDoctorFocusAreas } from "@/lib/doctor-profiles";
 import { isUploadedMediaPath } from "@/lib/images";
 import { getSectionByType, getSiteSettings, parseSectionContent } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
@@ -24,6 +24,9 @@ interface SectionDoctorItem {
   bio: string | null;
   education: string | null;
   schedule: string | null;
+  focusAreas: string | null;
+  bestFor: string | null;
+  careStyle: string | null;
   photo: {
     path: string;
     altText: string | null;
@@ -45,6 +48,9 @@ export default async function DoctorsSection() {
         bio: true,
         education: true,
         schedule: true,
+        focusAreas: true,
+        bestFor: true,
+        careStyle: true,
         photo: {
           select: {
             path: true,
@@ -70,7 +76,13 @@ export default async function DoctorsSection() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {doctors.map((doctor: SectionDoctorItem, i: number) => {
-            const profile = getDoctorProfile(doctor.slug);
+            const fallbackProfile = getDoctorProfile(doctor.slug, doctor.name);
+            const focusAreas = parseDoctorFocusAreas(doctor.focusAreas);
+            const badges =
+              focusAreas.length > 0 ? focusAreas : fallbackProfile?.focusAreas || [];
+            const bestFor = doctor.bestFor || fallbackProfile?.bestFor || null;
+            const careStyle =
+              doctor.careStyle || fallbackProfile?.careStyle || doctor.education || null;
 
             return (
               <article
@@ -102,9 +114,9 @@ export default async function DoctorsSection() {
               </div>
 
               <div className="flex flex-1 flex-col gap-4 p-6">
-                {profile ? (
+                {badges.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {profile.focusAreas.map((item) => (
+                    {badges.map((item) => (
                       <span
                         key={item}
                         className="rounded-full border border-[var(--line)] bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]"
@@ -120,23 +132,23 @@ export default async function DoctorsSection() {
                   </p>
                 ) : null}
                 <div className="grid gap-3">
-                  {profile?.bestFor ? (
+                  {bestFor ? (
                     <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/80 px-4 py-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
                         Подойдёт, если
                       </p>
                       <p className="mt-2 text-sm leading-7 text-[var(--ink)]">
-                        {profile.bestFor}
+                        {bestFor}
                       </p>
                     </div>
                   ) : null}
-                  {(profile?.careStyle || doctor.education) ? (
+                  {careStyle ? (
                     <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/80 px-4 py-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
                         Формат приёма
                       </p>
                       <p className="mt-2 text-sm leading-7 text-[var(--ink)]">
-                        {profile?.careStyle || doctor.education}
+                        {careStyle}
                       </p>
                     </div>
                   ) : null}

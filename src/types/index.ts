@@ -45,6 +45,9 @@ export interface DoctorItem {
   bio: string | null;
   education: string | null;
   schedule: string | null;
+  focusAreas: string | null;
+  bestFor: string | null;
+  careStyle: string | null;
   photoId: string | null;
   photo?: MediaItem | null;
   order: number;

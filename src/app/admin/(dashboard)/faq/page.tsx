@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AiAssistPanel from "@/components/admin/AiAssistPanel";
+import { requestAdminAiDraft } from "@/lib/admin-ai-client";
 import type { FaqItem } from "@/types";
 
 const initialForm = {
@@ -16,6 +18,12 @@ export default function FAQManager() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialForm);
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  interface FaqAiDraft {
+    question?: string | null;
+    answer?: string | null;
+  }
 
   const filteredItems = items.filter(
     (item) =>
@@ -67,6 +75,35 @@ export default function FAQManager() {
     await refresh();
     resetForm();
     toast.success("Вопрос сохранён");
+  };
+
+  const generateAiDraft = async () => {
+    if (!formData.question.trim() && !formData.answer.trim()) {
+      toast.error("Для AI заполнения укажите вопрос или ответ");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const draft = await requestAdminAiDraft<FaqAiDraft>("faq", {
+        question: formData.question || null,
+        answer: formData.answer || null,
+      });
+
+      setFormData((current) => ({
+        ...current,
+        question: draft.question ?? current.question,
+        answer: draft.answer ?? current.answer,
+      }));
+      toast.success("AI подготовил черновик FAQ");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const moveItem = async (id: string, direction: -1 | 1) => {
@@ -145,6 +182,12 @@ export default function FAQManager() {
           className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm"
         >
           <div className="grid gap-4">
+            <AiAssistPanel
+              description="AI может переформулировать вопрос и ответ на основе текущего текста формы. Организационные детали и медицинские факты не публикуйте без ручной проверки."
+              onGenerate={generateAiDraft}
+              loading={aiGenerating}
+              disabled={!formData.question.trim() && !formData.answer.trim()}
+            />
             <input
               value={formData.question}
               onChange={(event) =>

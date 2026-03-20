@@ -12,6 +12,9 @@ const initialForm = {
   bio: "",
   education: "",
   schedule: "",
+  focusAreas: "",
+  bestFor: "",
+  careStyle: "",
   photoId: "",
   enabled: true,
 };
@@ -92,6 +95,9 @@ export default function DoctorsManager() {
       bio: doctor.bio || "",
       education: doctor.education || "",
       schedule: doctor.schedule || "",
+      focusAreas: doctor.focusAreas || "",
+      bestFor: doctor.bestFor || "",
+      careStyle: doctor.careStyle || "",
       photoId: doctor.photoId || "",
       enabled: doctor.enabled,
     });
@@ -236,8 +242,9 @@ export default function DoctorsManager() {
         <div>
           <h1 className="text-3xl font-semibold text-slate-950">Врачи</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            Управление составом команды: специализация, опыт, биография, график,
-            фото, публикация и порядок на главной странице.
+            Управление составом команды: специализация, опыт, биография, акценты
+            карточки, формат приёма, график, фото, публикация и порядок на
+            главной странице.
           </p>
         </div>
         <button
@@ -365,6 +372,47 @@ export default function DoctorsManager() {
                   setFormData((current) => ({ ...current, bio: event.target.value }))
                 }
                 className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+              <span>Акценты карточки</span>
+              <textarea
+                value={formData.focusAreas}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    focusAreas: event.target.value,
+                  }))
+                }
+                className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3"
+                placeholder={"По одному пункту на строку:\nТерапия\nОртодонтия\nПриём взрослых и детей"}
+              />
+              <p className="text-xs leading-6 text-slate-500">
+                Короткие подписи, которые показываются плашками на карточке врача
+                на сайте.
+              </p>
+            </label>
+            <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+              <span>Подойдёт, если</span>
+              <textarea
+                value={formData.bestFor}
+                onChange={(event) =>
+                  setFormData((current) => ({ ...current, bestFor: event.target.value }))
+                }
+                className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+              <span>Формат приёма</span>
+              <textarea
+                value={formData.careStyle}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    careStyle: event.target.value,
+                  }))
+                }
+                className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3"
               />
             </label>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">

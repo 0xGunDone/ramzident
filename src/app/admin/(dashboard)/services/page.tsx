@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AiAssistPanel from "@/components/admin/AiAssistPanel";
+import { requestAdminAiDraft } from "@/lib/admin-ai-client";
 import type { ServiceItem, MediaOption } from "@/types";
 
 const initialForm = {
@@ -28,6 +30,16 @@ export default function ServicesManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialForm);
   const [search, setSearch] = useState<string>("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  interface ServiceAiDraft {
+    summary?: string | null;
+    description?: string | null;
+    body?: string | null;
+    badge?: string | null;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+  }
 
   const filteredServices = services.filter(
     (service) =>
@@ -123,6 +135,46 @@ export default function ServicesManager() {
     await refreshServices();
     resetForm();
     toast.success("Услуга сохранена");
+  };
+
+  const generateAiDraft = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Для AI заполнения укажите название услуги");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const draft = await requestAdminAiDraft<ServiceAiDraft>("service", {
+        title: formData.title,
+        summary: formData.summary || null,
+        description: formData.description || null,
+        body: formData.body || null,
+        priceFrom: formData.priceFrom || null,
+        duration: formData.duration || null,
+        badge: formData.badge || null,
+        seoTitle: formData.seoTitle || null,
+        seoDescription: formData.seoDescription || null,
+      });
+
+      setFormData((current) => ({
+        ...current,
+        summary: draft.summary ?? current.summary,
+        description: draft.description ?? current.description,
+        body: draft.body ?? current.body,
+        badge: draft.badge ?? current.badge,
+        seoTitle: draft.seoTitle ?? current.seoTitle,
+        seoDescription: draft.seoDescription ?? current.seoDescription,
+      }));
+      toast.success("AI подготовил черновик услуги");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const moveService = async (id: string, direction: -1 | 1) => {
@@ -260,6 +312,14 @@ export default function ServicesManager() {
                 className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3"
               />
             </label>
+            <div className="md:col-span-2">
+              <AiAssistPanel
+                description="AI улучшает текст услуги только на основе текущих полей формы. Цены, длительность, методы и другие факты вручную проверьте перед публикацией."
+                onGenerate={generateAiDraft}
+                loading={aiGenerating}
+                disabled={!formData.title.trim()}
+              />
+            </div>
             <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
               <span>Описание</span>
               <textarea

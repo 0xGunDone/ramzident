@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AiAssistPanel from "@/components/admin/AiAssistPanel";
+import { requestAdminAiDraft } from "@/lib/admin-ai-client";
 import type { TestimonialItem } from "@/types";
 
 const initialForm = {
@@ -19,6 +21,12 @@ export default function TestimonialsManager() {
   const [search, setSearch] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialForm);
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  interface TestimonialAiDraft {
+    role?: string | null;
+    quote?: string | null;
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -73,6 +81,38 @@ export default function TestimonialsManager() {
     toast.success("Отзыв сохранён");
     await refresh();
     resetForm();
+  };
+
+  const generateAiDraft = async () => {
+    if (!formData.quote.trim() && !formData.role.trim()) {
+      toast.error("Для AI заполнения укажите текст отзыва или подпись");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const draft = await requestAdminAiDraft<TestimonialAiDraft>("testimonial", {
+        author: formData.author || null,
+        role: formData.role || null,
+        quote: formData.quote || null,
+        source: formData.source || null,
+        rating: formData.rating,
+      });
+
+      setFormData((current) => ({
+        ...current,
+        role: draft.role ?? current.role,
+        quote: draft.quote ?? current.quote,
+      }));
+      toast.success("AI подготовил черновик отзыва");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI заполнение недоступно"
+      );
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const moveItem = async (id: string, direction: -1 | 1) => {
@@ -151,6 +191,14 @@ export default function TestimonialsManager() {
           className="rounded-[2rem] border border-black/5 bg-white px-6 py-6 shadow-sm"
         >
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <AiAssistPanel
+                description="AI бережно вычищает отзыв и подпись на основе текущих полей формы. Имена пациентов, результаты лечения и другие детали перепроверьте перед публикацией."
+                onGenerate={generateAiDraft}
+                loading={aiGenerating}
+                disabled={!formData.quote.trim() && !formData.role.trim()}
+              />
+            </div>
             <input
               value={formData.author}
               onChange={(event) =>
