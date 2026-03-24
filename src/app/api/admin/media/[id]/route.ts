@@ -52,7 +52,6 @@ export const PUT = withAuth(async (request, context) => {
         },
       });
 
-      await removePublicFile(media.path);
       revalidatePublicSite();
       return NextResponse.json(updated);
     } catch (error) {

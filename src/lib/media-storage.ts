@@ -204,8 +204,14 @@ export async function cleanupStoredFile(storedFilePath: string | null | undefine
   await unlink(storedFilePath).catch(() => {});
 }
 
+export function isManagedUploadPublicPath(
+  publicPath: string | null | undefined
+): publicPath is string {
+  return typeof publicPath === "string" && publicPath.startsWith("/uploads/");
+}
+
 export async function removePublicFile(publicPath: string | null | undefined) {
-  if (!publicPath) {
+  if (!isManagedUploadPublicPath(publicPath)) {
     return;
   }
 
